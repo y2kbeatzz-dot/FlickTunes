@@ -18,12 +18,26 @@ struct PortalSendView: View {
     @State private var linkText = ""
     @State private var transition: PortalTransition = .glide
     @State private var flying = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var linkDragOffset: CGFloat = 0
+    @State private var linkFlying = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ZStack {
             FlickStyle.background.ignoresSafeArea()
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Button { dismiss() } label: {
+                            Label("Back to Music", systemImage: "chevron.left")
+                        }
+                        .buttonStyle(.bordered)
+                        Spacer()
+                        Text("PORTAL")
+                            .font(.caption.bold())
+                            .foregroundStyle(FlickStyle.pink)
+                    }
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Portal.")
                             .font(.system(size: 38, weight: .bold, design: .rounded))
@@ -90,18 +104,48 @@ struct PortalSendView: View {
                     }
                     .frame(height: 290)
                     .contentShape(RoundedRectangle(cornerRadius: 24))
-                    .offset(x: flying ? -650 : 0)
+                    // Follow the finger continuously, then fly beyond the left
+                    // edge only when the user releases a deliberate swipe.
+                    .offset(x: flying ? -800 : dragOffset)
+                    .scaleEffect(flying
+                        ? (transition == .bloom ? 0.50 : 0.93)
+                        : max(0.84, 1.0 - abs(dragOffset) / 1300.0))
+                    .rotationEffect(.degrees(flying ? -13 : Double(dragOffset / 16.0)))
                     .opacity(flying ? 0 : 1)
-                    .gesture(
-                        DragGesture(minimumDistance: 25).onEnded { value in
-                            guard value.translation.width < -95,
-                                  abs(value.translation.width) > abs(value.translation.height) else {
-                                return
-                            }
-                            sendSelected()
+                    .overlay(alignment: .leading) {
+                        if dragOffset < -30 && !flying {
+                            Image(systemName: "arrow.left.circle.fill")
+                                .font(.system(size: 37))
+                                .foregroundStyle(FlickStyle.pink)
+                                .offset(x: -20)
+                                .transition(.opacity)
                         }
+                    }
+                    .gesture(
+                        DragGesture(minimumDistance: 6)
+                            .onChanged { value in
+                                guard !isSending && !flying else { return }
+                                dragOffset = min(0, value.translation.width)
+                            }
+                            .onEnded { value in
+                                guard !isSending && !flying else { return }
+                                let deliberate = value.translation.width < -115 &&
+                                    abs(value.translation.width) > abs(value.translation.height) * 1.3
+                                if deliberate && stagedURL != nil && !nearby.connectedPeers.isEmpty {
+                                    sendSelected()
+                                } else {
+                                    withAnimation(.spring(response: 0.40, dampingFraction: 0.60)) {
+                                        dragOffset = 0
+                                    }
+                                    if deliberate && stagedURL == nil {
+                                        status = "Choose a photo or file first."
+                                    } else if deliberate && nearby.connectedPeers.isEmpty {
+                                        status = "Pair with your Mac before throwing an item."
+                                    }
+                                }
+                            }
                     )
-                    .accessibilityLabel("Selected file. Swipe left to send to Mac.")
+                    .accessibilityLabel("Selected item. Drag left and release to send to Mac.")
 
                     Button(action: sendSelected) {
                         Label("Send selected item to Mac", systemImage: "arrow.up.right")
@@ -137,6 +181,41 @@ struct PortalSendView: View {
                                 .buttonStyle(.bordered)
                         }
                         .disabled(nearby.connectedPeers.isEmpty)
+                        if PortalURL.normalized(linkText) != nil {
+                            HStack(spacing: 10) {
+                                Image(systemName: "link.circle.fill")
+                                    .font(.title)
+                                    .foregroundStyle(FlickStyle.pink)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Drag this link to your Mac")
+                                        .font(.headline)
+                                    Text(linkText)
+                                        .font(.caption)
+                                        .lineLimit(1)
+                                }
+                                Spacer()
+                                Image(systemName: "arrow.left")
+                            }
+                            .padding(14)
+                            .background(.white.opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+                            .offset(x: linkFlying ? -700 : linkDragOffset)
+                            .opacity(linkFlying ? 0 : 1)
+                            .gesture(DragGesture(minimumDistance: 6)
+                                .onChanged { value in
+                                    guard !linkFlying else { return }
+                                    linkDragOffset = min(0, value.translation.width)
+                                }
+                                .onEnded { value in
+                                    if value.translation.width < -115 &&
+                                        nearby.connectedPeers.isEmpty == false {
+                                        sendLink()
+                                    } else {
+                                        withAnimation(.spring(response: 0.40, dampingFraction: 0.65)) {
+                                            linkDragOffset = 0
+                                        }
+                                    }
+                                })
+                        }
                         Text("Clipboard text is only read when you tap Send Clipboard. Links are shown on your Mac, not opened automatically.")
                             .font(.caption).foregroundStyle(.white.opacity(0.65))
                     }
@@ -215,9 +294,25 @@ struct PortalSendView: View {
     }
 
     private func animateThrow() {
-        withAnimation(.easeIn(duration: 0.28)) { flying = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+        let duration: Double = transition == .fade ? 0.55 : 0.33
+        withAnimation(.easeIn(duration: duration)) {
+            flying = true
+            dragOffset = -800
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration + 0.1) {
             flying = false
+            dragOffset = 0
+        }
+    }
+
+    private func animateLinkThrow() {
+        withAnimation(.easeIn(duration: transition == .fade ? 0.55 : 0.33)) {
+            linkFlying = true
+            linkDragOffset = -700
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            linkFlying = false
+            linkDragOffset = 0
         }
     }
 
@@ -243,9 +338,11 @@ struct PortalSendView: View {
             status = "Enter an http:// or https:// URL."
             return
         }
-        status = nearby.send(.portalLink(url))
+        let sent = nearby.send(.portalLink(url, transition: transition))
+        status = sent
             ? "Sent link to Mac. It won't open without a click."
             : "Mac disconnected. Reconnect and try again."
+        if sent { animateLinkThrow() }
     }
 
     private func sendClipboard() {
@@ -254,9 +351,9 @@ struct PortalSendView: View {
             return
         }
         if let url = PortalURL.normalized(text) {
-            status = nearby.send(.portalLink(url)) ? "Sent clipboard link." : "Mac isn't connected."
+            status = nearby.send(.portalLink(url, transition: transition)) ? "Sent clipboard link." : "Mac isn't connected."
         } else {
-            status = nearby.send(.portalText(text)) ? "Sent clipboard text." : "Mac isn't connected."
+            status = nearby.send(.portalText(text, transition: transition)) ? "Sent clipboard text." : "Mac isn't connected."
         }
     }
 }
