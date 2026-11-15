@@ -59,7 +59,7 @@ func makeIcon(_ pixels: Int, to file: URL) throws {
     cg.move(to: CGPoint(x: 515, y: 318)); cg.addLine(to: CGPoint(x: 856, y: 318)); cg.strokePath()
 
     // Three curved 'flick' waves.
-    for (index, alpha) in [(0, 0.30), (1, 0.60), (2, 0.95)] {
+    for (index, alpha) in [(0, CGFloat(0.30)), (1, CGFloat(0.60)), (2, CGFloat(0.95))] {
         let shift = CGFloat(index) * 32
         cg.setStrokeColor(NSColor.white.withAlphaComponent(alpha).cgColor)
         cg.setLineWidth(19)
