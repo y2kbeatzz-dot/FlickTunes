@@ -60,7 +60,7 @@ jobs:
           cat > dist/RELEASE_NOTES.md <<EOF
           FlickTunes experimental build from commit ${GITHUB_SHA}.
 
-          - FlickTunes-macOS.dmg: macOS app, unsigned and not notarized.
+          - FlickTunes-macOS.dmg: macOS app, ad-hoc signed for app integrity, but NOT Developer ID signed or notarized. macOS Gatekeeper can block launch; see README for verification and narrowly scoped approval instructions.
           - FlickTunes-iOS-UNSIGNED.ipa: unsigned iPhone build. It cannot be
             installed directly on a real iPhone until it is signed for your device.
             Open the project in Xcode and sign the iOS target using your Apple ID.
