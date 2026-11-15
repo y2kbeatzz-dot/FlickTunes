@@ -6,10 +6,12 @@ FlickTunes is a two-app **SwiftUI prototype**: an iPhone sender and a Mac receiv
 
 ## 📦 Download the IPA and DMG
 
-1. Go to **[GitHub Actions → Build FlickTunes IPA and DMG](../../actions/workflows/build.yml)**.
-2. Select **Run workflow** (or open a successful run created automatically by a push).
-3. At the bottom of the successful run, download **FlickTunes-macOS-DMG** or **FlickTunes-iOS-Unsigned-IPA** under **Artifacts**. GitHub wraps each download in a ZIP: unzip it to get the `.dmg` or `.ipa`.
-4. For permanent download links, create and push a version tag like `v0.1.0`; the workflow will attach both files to a GitHub Release.
+1. Open **[FlickTunes Releases](../../releases)**. You can also check **[Build workflow runs](../../actions/workflows/build.yml)**.
+2. Open the newest **FlickTunes Development Build** prerelease (or a versioned release).
+3. Under **Assets**, download **FlickTunes-macOS.dmg** for your Mac or **FlickTunes-iOS-UNSIGNED.ipa** for iPhone. These are direct files, **not** GitHub Actions artifact ZIPs.
+4. Optional: use `SHA256SUMS.txt` to check the downloaded files.
+
+Every push to `main` and every manual **Run workflow** generates its own development release. Version tags starting with `v` produce named version releases. This design avoids the exhausted **GitHub Actions artifact storage quota** because files are published as GitHub Release assets instead.
 
 **Important:** The iPhone IPA is **unsigned**. An unsigned IPA is a build artifact, *not an installable app*. You must code-sign it with an Apple Development certificate/team for your device, for example by building and running `FlickTunesiOS` from Xcode with your Apple ID. The Mac DMG is **not notarized**: macOS Gatekeeper may block opening it until you explicitly approve it under Privacy & Security. No Apple Developer certificate is included in this repository.
 
