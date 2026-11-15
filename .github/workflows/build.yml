@@ -10,8 +10,10 @@ permissions:
   contents: write
 
 concurrency:
+  # Keep one current build instead of accumulating releases/jobs when
+  # several fixes are pushed close together.
   group: flicktunes-build-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   package:
