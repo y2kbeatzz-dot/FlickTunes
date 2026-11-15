@@ -11,6 +11,9 @@ struct PhoneHomeView: View {
     @StateObject private var nearby = NearbyBridge()
     @StateObject private var music = PhoneMusic()
     @StateObject private var flick = FlickGesture()
+    // Store the user's preferences; sensor collection only runs in the foreground.
+    @AppStorage("flicktunes.motionFlickEnabled.v1") private var motionFlickEnabled = true
+    @AppStorage("flicktunes.pauseAfterHandoff.v1") private var pauseAfterHandoff = true
     @State private var toast: String?
     @State private var showingHelp = false
     @State private var showingAbout = false
@@ -39,7 +42,7 @@ struct PhoneHomeView: View {
                     StatusCard(
                         symbol: "sparkles",
                         headline: "Quick start",
-                        subheadline: "1. Start FlickTunes on Mac. 2. Play a song in Music. 3. Pair once. 4. Tap Flick to Mac."
+                        subheadline: "1. Keep FlickTunes running on your Mac. 2. Pair once. 3. Play Apple Music on iPhone. 4. Gently flick your phone — no button needed."
                     )
 
                     StatusCard(symbol: "music.note", headline: music.song.map { "\($0.title) · \($0.artist)" } ?? "Apple Music", subheadline: music.message)
@@ -50,7 +53,7 @@ struct PhoneHomeView: View {
                         StatusCard(
                             symbol: "checkmark.circle.fill",
                             headline: "Connected to \(nearby.connectedPeers.map(\.displayName).joined(separator: ", "))",
-                            subheadline: "Ready to send your Apple Music song."
+                            subheadline: motionFlickEnabled ? "Paired and ready. Gently flick your iPhone while this screen is open." : "Paired and ready. Enable motion flick or use the button below."
                         )
                     } else {
                         StatusCard(
@@ -105,9 +108,24 @@ struct PhoneHomeView: View {
                     .disabled(nearby.connectedPeers.isEmpty)
                     .opacity(nearby.connectedPeers.isEmpty ? 0.5 : 1)
 
-                    Toggle("Enable motion flick while app is open", isOn: Binding(get: { flick.enabled }, set: { $0 ? flick.start() : flick.stop() }))
+                    VStack(alignment: .leading, spacing: 10) {
+                        Toggle(isOn: $motionFlickEnabled) {
+                            Label("Flick to send (no tapping)", systemImage: "iphone.gen3.radiowaves.left.and.right")
+                                .font(.headline)
+                        }
                         .tint(FlickStyle.pink)
-                    Toggle("Pause iPhone after Mac confirms playback", isOn: $music.pauseOnSuccess)
+                        Text("Your choice is remembered. A quick, gentle flick sends the current Apple Music track to your paired Mac when FlickTunes is open.")
+                            .font(.subheadline).foregroundStyle(.white.opacity(0.7))
+                        Text(motionFlickEnabled ? flick.message : "Flick gesture off — use the send button instead.")
+                            .font(.footnote).foregroundStyle(FlickStyle.pink.opacity(0.88))
+                        if !flick.isSupported {
+                            Text("Motion sensing isn't available on this device.")
+                                .font(.footnote).foregroundStyle(.orange)
+                        }
+                    }
+                    .padding(17)
+                    .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
+                    Toggle("Pause iPhone after Mac confirms playback", isOn: $pauseAfterHandoff)
                         .tint(FlickStyle.pink)
                     Text("FlickTunes reads the Music app's current song and sends metadata, not audio. Keep both devices nearby and on Wi-Fi with Bluetooth enabled. Supported songs must be available in the Mac's Music library.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.55))
@@ -136,15 +154,20 @@ struct PhoneHomeView: View {
             flick.onFlick = sendSong
             nearby.onAcknowledgement = { succeeded, details in
                 toast = details
-                if succeeded { music.pauseAfterSuccessfulTransfer() }
+                if succeeded && pauseAfterHandoff {
+                    music.pauseOnSuccess = true
+                    music.pauseAfterSuccessfulTransfer()
+                }
             }
             await music.requestAccess()
+            if motionFlickEnabled && scenePhase == .active { flick.start() }
         }
         .onChange(of: scenePhase) { _, phase in
             switch phase {
             case .active:
                 nearby.resumeAfterForeground()
                 music.refresh()
+                if motionFlickEnabled { flick.start() }
             case .background:
                 flick.stop()
                 nearby.suspendForBackground()
@@ -152,12 +175,20 @@ struct PhoneHomeView: View {
                 flick.stop()
             }
         }
+        .onChange(of: motionFlickEnabled) { _, isOn in
+            if isOn && scenePhase == .active { flick.start() }
+            else { flick.stop() }
+        }
     }
 
     private func sendSong() {
         music.refresh()
         guard let packet = music.song else { toast = music.message; return }
-        guard !nearby.connectedPeers.isEmpty else { toast = "Pair with your Mac first."; return }
+        guard !nearby.connectedPeers.isEmpty else {
+            nearby.resumeAfterForeground()
+            toast = "Waiting for your saved Mac to reconnect. Keep FlickTunes open on both devices; pair once if this is your first use."
+            return
+        }
         if nearby.send(.handoff(packet)) { toast = "Sent \(packet.title) — waiting for Mac…" }
     }
 }
