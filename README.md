@@ -1,16 +1,16 @@
-# FlickTunes ✨
+# RIFT ✨
 
-**Flick your music to your Mac.**
+**Swipe it away. Watch it arrive.**
 
-FlickTunes is a two-app **SwiftUI prototype**: an iPhone sender and a Mac receiver. It finds nearby devices with **MultipeerConnectivity**, lets you pair with approval on the Mac, and transfers the Apple Music track and playback time. The Mac receiver controls the actual **Music.app** with AppleScript.
+RIFT is a pair of **SwiftUI apps**: an iPhone sender and a Mac receiver. It finds nearby devices with **MultipeerConnectivity**, lets you pair with approval on the Mac, and transfers the Apple Music track and playback time. The Mac receiver controls the actual **Music.app** with AppleScript.
 
-**Created by [life999](https://guns.lol/life999)** · [Source code](https://github.com/y2kbeatzz-dot/FlickTunes)
+**Created by Ksyusha ([life999](https://guns.lol/life999))** · [Source code](https://github.com/y2kbeatzz-dot/FlickTunes)
 
 ## 📦 Download the IPA and DMG
 
-1. Open **[FlickTunes Releases](../../releases)**. You can also check **[Build workflow runs](../../actions/workflows/build.yml)**.
+1. Open **[RIFT Releases](../../releases)**. You can also check **[Build workflow runs](../../actions/workflows/build.yml)**.
 2. Open the newest **FlickTunes Development Build** prerelease (or a versioned release).
-3. Under **Assets**, download **FlickTunes-macOS.dmg** for your Mac or **FlickTunes-iOS-UNSIGNED.ipa** for iPhone. These are direct files, **not** GitHub Actions artifact ZIPs.
+3. Under **Assets**, download **RIFT-macOS.dmg** for your Mac or **RIFT-iOS-UNSIGNED.ipa** for iPhone. These are direct files, **not** GitHub Actions artifact ZIPs.
 4. Optional: use `SHA256SUMS.txt` to check the downloaded files.
 
 Every push to `main` and every manual **Run workflow** generates its own development release. Version tags starting with `v` produce named version releases. This design avoids the exhausted **GitHub Actions artifact storage quota** because files are published as GitHub Release assets instead.
@@ -19,15 +19,15 @@ Every push to `main` and every manual **Run workflow** generates its own develop
 
 ## Rebuilding both apps
 
-Every push to `main` automatically builds **both** deliverables: `FlickTunes-iOS-UNSIGNED.ipa` and `FlickTunes-macOS.dmg`. After a successful run, get the two files under [GitHub Releases](../../releases), not Actions artifacts. The iPhone IPA is unsigned and must be signed for your device; the Mac DMG is ad-hoc signed but not notarized.
+Every push to `main` automatically builds **both** deliverables: `RIFT-iOS-UNSIGNED.ipa` and `RIFT-macOS.dmg`. After a successful run, get the two files under [GitHub Releases](../../releases), not Actions artifacts. The iPhone IPA is unsigned and must be signed for your device; the Mac DMG is ad-hoc signed but not notarized.
 
 If your iPhone does **not** show up in Sideloadly *or Finder*, the build cannot fix USB device discovery. Reconnect the unlocked iPhone using a data-capable cable, check macOS accessory permission, and confirm Finder sees it before attempting the IPA install. You can still run the Mac DMG without an iPhone connected.
 
 ## 📱 Sideloadly: install FlickTunes on iPhone
 
-**Important: choose your physical iPhone in Sideloadly's device dropdown, not your Apple Silicon Mac.** On Apple Silicon, Sideloadly can show the Mac itself as an installation destination. If its error says *Apple Silicon install failed*, check the target selection first. For the Mac use the separate `FlickTunes-macOS.dmg`, not the IPA.
+**Important: choose your physical iPhone in Sideloadly's device dropdown, not your Apple Silicon Mac.** On Apple Silicon, Sideloadly can show the Mac itself as an installation destination. If its error says *Apple Silicon install failed*, check the target selection first. For the Mac use the separate `RIFT-macOS.dmg`, not the IPA.
 
-The iOS archive is unsigned by GitHub Actions so Sideloadly must sign it with your Apple ID before installing. Plug in the iPhone, unlock it, approve Trust if asked, select the iPhone as the target and load the latest `FlickTunes-iOS-UNSIGNED.ipa` from GitHub Releases. If the device is not shown, check the USB cable, Finder trust and developer mode.
+The iOS archive is unsigned by GitHub Actions so Sideloadly must sign it with your Apple ID before installing. Plug in the iPhone, unlock it, approve Trust if asked, select the iPhone as the target and load the latest `RIFT-iOS-UNSIGNED.ipa` from GitHub Releases. If the device is not shown, check the USB cable, Finder trust and developer mode.
 
 **Fixed in v0.4.1:** The previous IPA changed the app folder's name without changing the binary name. Some installers then looked for the nonexistent `Payload/FlickTunes.app/FlickTunes` executable. The build now produces a real `FlickTunes.app/FlickTunes`, verifies `CFBundleExecutable` from `Info.plist` and fails the release before upload if the archive is incorrect. Don't use the earlier v0.4.0 IPA for this installer error.
 
@@ -37,7 +37,7 @@ If Sideloadly still fails after selecting the iPhone and using the new IPA, copy
 
 The downloadable macOS app is a **development build**. The build is ad-hoc signed but **not Apple Developer ID signed or notarized**. A browser download is quarantined by macOS; Gatekeeper may display “damaged” even when the archive is intact. This message can also indicate a genuinely corrupted or modified app, so first confirm you got the expected release file.
 
-1. Download the DMG from this repository's **Releases** page, not from mirrors. You can compare the `shasum -a 256 ~/Downloads/FlickTunes-macOS.dmg` output against the matching entry in the release's `SHA256SUMS.txt`.
+1. Download the DMG from this repository's **Releases** page, not from mirrors. You can compare the `shasum -a 256 ~/Downloads/RIFT-macOS.dmg` output against the matching entry in the release's `SHA256SUMS.txt`.
 2. Mount the DMG and copy **FlickTunes.app** into **Applications**.
 3. First try the Apple-supported path: open the app once, then open **System Settings → Privacy & Security → Open Anyway**, if macOS provides that option.
 4. If macOS still blocks your own verified development app, and you understand this bypasses Gatekeeper for *that app only*, run:
@@ -52,6 +52,18 @@ The downloadable macOS app is a **development build**. The build is ad-hoc signe
 To check app signature validity, run `codesign --verify --deep --strict --verbose=2 "/Applications/FlickTunes.app"`. If the signature check fails or the release checksum does not match, delete that copy and download again instead of bypassing the warning.
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
+
+## RIFT 0.9.0 — Launch candidate
+
+RIFT is the new name for the iPhone and Mac apps. One nearby connection lets you send Apple Music playback, photos, videos, documents, website links and user-approved clipboard text from iPhone to Mac.
+
+**Eight arrival effects** are selectable on iPhone: Glide, Bloom, Dissolve, Vortex, Pulse, Warp, Stardust and Ripple. The selection is saved between launches and travels with each file, link or clipboard handoff. The Mac plays the chosen effect as an item emerges from a glowing portal fixed to the RIGHT edge of its screen. Motion reduction is respected.
+
+The iPhone interface has been rewritten with simpler connection messages, clearer send instructions, effect descriptions and a two-column selection grid. Both apps display **RIFT** and have a matching dimensional portal icon. Creator: **Ksyusha (life999)** — https://guns.lol/life999.
+
+**Packaging:** The Mac app is `RIFT.app` inside `RIFT-macOS.dmg`; the iPhone app is `Payload/RIFT.app/RIFT` inside `RIFT-iOS-UNSIGNED.ipa`. Legacy `com.flicktunes.*` app identifiers, discovery service name and pairing keys remain unchanged on purpose to keep existing pairings and sideload updates compatible.
+
+**Launch checklist:** GitHub builds and Swift smoke tests must pass, followed by testing on a paired physical iPhone and Mac. The IPA still needs personal/device signing; the DMG needs Developer ID signing and notarization for warning-free general distribution. The 0.9.0 label is a launch candidate, not a claim that those remaining requirements are complete.
 
 ## What's new in v0.4.2 — RIGHT-edge Portal effect
 
@@ -142,8 +154,8 @@ bash scripts/build_artifacts.sh
 ```
 
 Output:
-- `dist/FlickTunes-macOS.dmg`
-- `dist/FlickTunes-iOS-UNSIGNED.ipa`
+- `dist/RIFT-macOS.dmg`
+- `dist/RIFT-iOS-UNSIGNED.ipa`
 
 ## 🎵 How to use
 
