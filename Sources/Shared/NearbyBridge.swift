@@ -37,6 +37,10 @@ final class NearbyBridge: NSObject, ObservableObject {
     private var retryWork: DispatchWorkItem?
     private var timeoutWork: DispatchWorkItem?
     private var retryCount = 0
+    // Keeps the same incoming invite from producing overlapping approval
+    // prompts or repeated MCSession negotiations.
+    private var lastAcceptedInvitePeer: MCPeerID?
+    private var lastAcceptedInviteAt = Date.distantPast
     private static let identityKey = "flicktunes.localPeer.v2"
     private static let preferredKey = "flicktunes.preferredMac.v2"
     private static let trustedKey = "flicktunes.trustedPhone.v2"
@@ -109,9 +113,11 @@ final class NearbyBridge: NSObject, ObservableObject {
         isSuspended = true
         cancelPending()
         browser?.stopBrowsingForPeers()
-        session.disconnect()
-        connectedPeers.removeAll()
-        status = "Paused in background — reconnects when opened"
+        // Do not deliberately disconnect an established session when the
+        // user briefly switches to Music. iOS can suspend it on its own.
+        status = connectedPeers.isEmpty
+            ? "Searching paused while iPhone is in background"
+            : connectionDescription
     }
 
     func resumeAfterForeground() {
@@ -121,7 +127,7 @@ final class NearbyBridge: NSObject, ObservableObject {
             retryCount = 0
             discoveredPeers.removeAll()
             browser?.startBrowsingForPeers()
-            status = "Looking for your paired Mac…"
+            status = connectedPeers.isEmpty ? "Looking for your saved Mac…" : connectionDescription
         } else if let preferredPeer, connectedPeers.isEmpty, discoveredPeers.contains(preferredPeer) {
             scheduleReconnect(preferredPeer)
         }
@@ -131,7 +137,11 @@ final class NearbyBridge: NSObject, ObservableObject {
         guard let handler = pendingInvitation else { return }
         pendingInvitation = nil
         invitationFrom = nil
-        if accept { approvedPeer = pendingInviter }
+        if accept {
+            approvedPeer = pendingInviter
+            lastAcceptedInvitePeer = pendingInviter
+            lastAcceptedInviteAt = Date()
+        }
         pendingInviter = nil
         handler(accept, accept ? session : nil)
         status = accept ? "Connecting approved iPhone…" : "Connection declined"
@@ -144,6 +154,8 @@ final class NearbyBridge: NSObject, ObservableObject {
         approvedPeer = nil
         preferredPeerName = nil
         retryCount = 0
+        lastAcceptedInvitePeer = nil
+        lastAcceptedInviteAt = .distantPast
         UserDefaults.standard.removeObject(forKey: Self.preferredKey)
         UserDefaults.standard.removeObject(forKey: Self.trustedKey)
         session.disconnect()
@@ -230,14 +242,14 @@ final class NearbyBridge: NSObject, ObservableObject {
             status = "Waiting for \(peer.displayName) to appear…"
             return
         }
-        let delays: [TimeInterval] = [2.5, 6, 12]
+        let delays: [TimeInterval] = [4, 10]
         guard retryCount < delays.count else {
-            status = "Connection lost — tap your Mac to retry manually"
+            status = "Saved Mac unavailable — use Rescan if it remains offline"
             return
         }
         let delay = delays[retryCount]
         retryCount += 1
-        status = "Disconnected — retry \(retryCount)/\(delays.count) in \(Int(delay.rounded()))s"
+        status = "Reconnecting to saved Mac (\(retryCount)/\(delays.count))…"
         let work = DispatchWorkItem { [weak self] in
             guard let self else { return }
             self.retryWork = nil
@@ -254,8 +266,11 @@ final class NearbyBridge: NSObject, ObservableObject {
     private func handleState(_ peer: MCPeerID, _ state: MCSessionState) {
         switch state {
         case .connected:
+            // MultipeerConnectivity sometimes emits repeated state notifications.
+            // They must not trigger duplicate handoffs or stack peer labels.
+            let wasConnected = connectedPeers.contains(peer)
             cancelPending()
-            if !connectedPeers.contains(peer) { connectedPeers.append(peer) }
+            connectedPeers = [peer]
             retryCount = 0
             status = connectionDescription
             if mode == .browsing {
@@ -269,11 +284,18 @@ final class NearbyBridge: NSObject, ObservableObject {
                 approvedPeer = nil
                 Self.savePeer(peer, key: Self.trustedKey)
             }
-            // iPhone may have one pending flick while a trusted Mac reconnects.
-            onConnected?(peer)
+            // One callback for each real transition, not each MCSession event.
+            if !wasConnected { onConnected?(peer) }
         case .connecting:
-            if connectedPeers.isEmpty { status = "Establishing encrypted connection with \(peer.displayName)…" }
+            if connectedPeers.isEmpty && (connectingPeer == peer || approvedPeer == peer) {
+                status = "Connecting securely to \(peer.displayName)…"
+            }
         case .notConnected:
+            // Stale .notConnected callbacks may arrive after a newer connected
+            // event. Never let one overwrite a live connection.
+            if session.connectedPeers.contains(peer) { return }
+            let wasTracked = connectedPeers.contains(peer) || connectingPeer == peer || approvedPeer == peer
+            guard wasTracked else { return }
             connectedPeers.removeAll { $0 == peer }
             if connectingPeer == peer {
                 timeoutWork?.cancel()
@@ -284,8 +306,8 @@ final class NearbyBridge: NSObject, ObservableObject {
             if !connectedPeers.isEmpty { status = connectionDescription }
             else if isSuspended { status = "Paused — reopen FlickTunes to reconnect" }
             else if mode == .browsing, preferredPeer == peer { scheduleReconnect(peer) }
-            else if mode == .browsing { status = "Pairing ended — tap your Mac to retry" }
-            else { status = "iPhone disconnected — waiting for reconnection" }
+            else if mode == .browsing { status = "Connection ended — select your Mac to retry" }
+            else { status = "Waiting for your saved iPhone to reconnect" }
         @unknown default:
             status = "Connection state changed"
         }
@@ -331,9 +353,25 @@ extension NearbyBridge: MCSessionDelegate {
 extension NearbyBridge: MCNearbyServiceAdvertiserDelegate {
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         DispatchQueue.main.async {
-            if self.pendingInvitation != nil { invitationHandler(false, nil); return }
+            if !self.connectedPeers.isEmpty || !self.session.connectedPeers.isEmpty {
+                // This receiver accepts one iPhone at a time. Ignore duplicate
+                // invites rather than stacking sessions and confirmation alerts.
+                invitationHandler(false, nil)
+                return
+            }
+            if self.pendingInvitation != nil {
+                invitationHandler(false, nil)
+                return
+            }
+            if self.lastAcceptedInvitePeer == peerID &&
+                Date().timeIntervalSince(self.lastAcceptedInviteAt) < 9 {
+                invitationHandler(false, nil)
+                return
+            }
             if self.trustedPhone == peerID {
-                self.status = "Reconnecting approved iPhone \(peerID.displayName)…"
+                self.lastAcceptedInvitePeer = peerID
+                self.lastAcceptedInviteAt = Date()
+                self.status = "Restoring saved iPhone connection…"
                 invitationHandler(true, self.session)
                 return
             }
@@ -353,8 +391,17 @@ extension NearbyBridge: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         DispatchQueue.main.async {
             guard !self.isSuspended else { return }
-            if !self.discoveredPeers.contains(peerID) { self.discoveredPeers.append(peerID) }
-            if self.preferredPeer == peerID, self.connectedPeers.isEmpty { self.scheduleReconnect(peerID) }
+            guard !self.discoveredPeers.contains(peerID) else { return }
+            // Bonjour can report old instances under an identical device
+            // name. Show one row per Mac, preferring the saved peer identity.
+            if let existing = self.discoveredPeers.first(where: { $0.displayName == peerID.displayName }) {
+                if existing == self.preferredPeer { return }
+                self.discoveredPeers.removeAll { $0.displayName == peerID.displayName }
+            }
+            self.discoveredPeers.append(peerID)
+            if self.preferredPeer == peerID && self.connectedPeers.isEmpty {
+                self.scheduleReconnect(peerID)
+            }
         }
     }
 
