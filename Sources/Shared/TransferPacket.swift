@@ -23,20 +23,21 @@ struct WireMessage: Codable {
     let packet: TransferPacket?
     let succeeded: Bool?
     let details: String?
+    let transition: PortalTransition?
 
     static func handoff(_ packet: TransferPacket) -> WireMessage {
-        WireMessage(kind: .handoff, packet: packet, succeeded: nil, details: nil)
+        WireMessage(kind: .handoff, packet: packet, succeeded: nil, details: nil, transition: nil)
     }
 
     static func acknowledgement(succeeded: Bool, details: String) -> WireMessage {
-        WireMessage(kind: .acknowledgement, packet: nil, succeeded: succeeded, details: details)
+        WireMessage(kind: .acknowledgement, packet: nil, succeeded: succeeded, details: details, transition: nil)
     }
 
-    static func portalLink(_ url: URL) -> WireMessage {
-        WireMessage(kind: .portalLink, packet: nil, succeeded: nil, details: url.absoluteString)
+    static func portalLink(_ url: URL, transition: PortalTransition = .glide) -> WireMessage {
+        WireMessage(kind: .portalLink, packet: nil, succeeded: nil, details: url.absoluteString, transition: transition)
     }
 
-    static func portalText(_ text: String) -> WireMessage {
-        WireMessage(kind: .portalText, packet: nil, succeeded: nil, details: text)
+    static func portalText(_ text: String, transition: PortalTransition = .glide) -> WireMessage {
+        WireMessage(kind: .portalText, packet: nil, succeeded: nil, details: text, transition: transition)
     }
 }
