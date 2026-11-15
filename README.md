@@ -57,6 +57,14 @@ To check app signature validity, run `codesign --verify --deep --strict --verbos
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
 
+## RIFT 0.9.1 — Launch at Login and menu-bar receiver
+
+RIFT for Mac now offers a **Launch RIFT at login** switch in the main window and **Launch at Login** toggle in the menu bar. It uses Apple's supported `SMAppService.mainApp` Login Items API, not a separate helper script or LaunchAgent. On macOS, the setting may require approval in **System Settings → General → Login Items & Extensions**.
+
+The nearby receiver starts at app launch instead of waiting for the window or menu to appear. Closing the RIFT window keeps the receiver running in the menu bar. Choose **Quit RIFT** in the menu bar to stop it. For reliable launch-at-login operation, put `RIFT.app` in **/Applications**, rather than running from the DMG.
+
+The website deploy workflow also attempts initial GitHub Pages activation automatically. The repository owner may still need to select **Settings → Pages → Source: GitHub Actions** if GitHub blocks automatic setup.
+
 ## RIFT 0.9.0 — Launch candidate
 
 RIFT is the new name for the iPhone and Mac apps. One nearby connection lets you send Apple Music playback, photos, videos, documents, website links and user-approved clipboard text from iPhone to Mac.

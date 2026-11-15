@@ -33,8 +33,10 @@ jobs:
           test -s website/privacy.html
           test -s website/support.html
           grep -q 'RIFT' website/index.html
-      - name: Configure GitHub Pages
+      - name: Configure or enable GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
