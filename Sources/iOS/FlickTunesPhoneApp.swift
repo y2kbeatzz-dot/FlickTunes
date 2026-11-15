@@ -60,7 +60,8 @@ struct PhoneHomeView: View {
                     } else {
                         StatusCard(
                             symbol: nearby.connectingPeer == nil ? "laptopcomputer" : "hourglass.circle",
-                            headline: nearby.connectingPeer.map { "Connecting to \($0.displayName)…" } ?? "Searching for your Mac",
+                            headline: nearby.connectingPeer.map { "Connecting to \($0.displayName)…" } ??
+                                (nearby.preferredPeerName.map { "Waiting for saved Mac: \($0)" } ?? "Find your Mac"),
                             subheadline: nearby.status
                         )
                         ForEach(nearby.discoveredPeers, id: \.self) { peer in
@@ -99,6 +100,11 @@ struct PhoneHomeView: View {
                     }
                     .buttonStyle(.bordered)
                     Text(nearby.status).font(.footnote).foregroundStyle(.white.opacity(0.65))
+                    if nearby.preferredPeerName != nil {
+                        Text("Your saved Mac is remembered. If iOS pauses nearby connections, FlickTunes will reconnect when you return. You don't need to pair again unless you select Forget Pairing.")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.56))
+                    }
 
                     Button(action: sendSong) {
                         Label("Flick to Mac", systemImage: "arrow.up.right")
