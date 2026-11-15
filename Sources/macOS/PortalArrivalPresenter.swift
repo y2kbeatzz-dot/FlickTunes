@@ -67,12 +67,13 @@ final class PortalArrivalPresenter {
 }
 
 enum ArrivalKind: Equatable {
-    case file, photo, link, clipboard
+    case file, photo, video, link, clipboard
 
     var icon: String {
         switch self {
         case .file: return "doc.fill"
         case .photo: return "photo.fill"
+        case .video: return "film.fill"
         case .link: return "link"
         case .clipboard: return "doc.on.clipboard"
         }
@@ -82,6 +83,7 @@ enum ArrivalKind: Equatable {
         switch self {
         case .file: return "File landed on your Mac"
         case .photo: return "Photo landed on your Mac"
+        case .video: return "Video landed on your Mac"
         case .link: return "Link from iPhone"
         case .clipboard: return "Clipboard from iPhone"
         }
