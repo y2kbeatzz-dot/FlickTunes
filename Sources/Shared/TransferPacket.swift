@@ -18,7 +18,7 @@ struct TransferPacket: Codable, Identifiable, Equatable {
 }
 
 struct WireMessage: Codable {
-    enum Kind: String, Codable { case handoff, acknowledgement }
+    enum Kind: String, Codable { case handoff, acknowledgement, portalLink }
     let kind: Kind
     let packet: TransferPacket?
     let succeeded: Bool?
@@ -30,5 +30,9 @@ struct WireMessage: Codable {
 
     static func acknowledgement(succeeded: Bool, details: String) -> WireMessage {
         WireMessage(kind: .acknowledgement, packet: nil, succeeded: succeeded, details: details)
+    }
+
+    static func portalLink(_ url: URL) -> WireMessage {
+        WireMessage(kind: .portalLink, packet: nil, succeeded: nil, details: url.absoluteString)
     }
 }
