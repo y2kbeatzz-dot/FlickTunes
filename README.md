@@ -37,6 +37,20 @@ To check app signature validity, run `codesign --verify --deep --strict --verbos
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
 
+## What's new in v0.3.1
+
+- **Flick-to-send by default:** Gently flick your iPhone while FlickTunes is open to send the current Apple Music track. Your on/off choice is saved between launches. The regular send button remains available.
+- **Remembered Mac:** Pair and approve your Mac once. FlickTunes stores its actual peer identity for future sessions, so you do not need to pick or type the device again.
+- **Less connection stacking:** Duplicate Bonjour discoveries are collapsed into one row; incoming invitations are debounced; only one receiver session is allowed; repeated connected notifications do not trigger multiple handoffs.
+- **Reconnect without false disconnects:** The iPhone no longer deliberately disconnects the session just because you switch apps. Background suspension by iOS is still possible. Stale disconnect callbacks no longer override a current live connection, and reconnection attempts are bounded.
+- **Queued flick:** If your saved Mac is reconnecting, a single flick can be held for up to 20 seconds and sent only to the exact approved Mac identity.
+- **Help and About:** Step-by-step setup, connection recovery instructions, a version label, creator credit to **life999**, and a link to [guns.lol/life999](https://guns.lol/life999) in both apps.
+- **Mac receiver:** Runs from the menu bar after closing the main window; its setup instructions describe flicking instead of tapping.
+
+For a clean test, install the same latest version on both devices, leave FlickTunes running on the Mac, then open FlickTunes on your iPhone while Apple Music is playing. If an older installation has stale pairings, use **Forget Pairing** on both devices once, then approve again. Avoid repeatedly pressing Pair or Rescan while the status says Connecting.
+
+**Limitations:** MultipeerConnectivity may be suspended when iOS backgrounds the app. This patch reduces unnecessary disconnects but does not guarantee an always-on iPhone background connection. The flick gesture is detected inside FlickTunes while it is active; it cannot run in the background Music app. The Mac can play only matching tracks in its Music library. Device-to-device stability must still be verified on real hardware.
+
 ## What's new in v0.2.0
 
 - **Connection stability:** Persists the local peer identity, remembers an approved device, prevents duplicate invitations, and limits automatic reconnection to three spaced attempts. Manual **Rescan** and **Forget Pairing** are available on iPhone; **Forget Pairing** also appears on Mac.
@@ -106,4 +120,4 @@ scripts/              Generate app icon + build IPA and DMG
 project.yml            XcodeGen source of truth
 ```
 
-Version 0.2.0 — prototype under development. Created by [life999](https://guns.lol/life999).
+Version 0.3.1 — prototype under development. Created by [life999](https://guns.lol/life999).
