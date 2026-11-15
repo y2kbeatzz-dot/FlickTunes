@@ -45,7 +45,7 @@ struct PortalSendView: View {
                         Text("Throw it. It lands on your Mac.")
                             .font(.headline)
                             .foregroundStyle(FlickStyle.pink)
-                        Text("Photos, documents and links — no AirDrop menu.")
+                        Text("Drag LEFT on your iPhone. A glowing portal opens on the RIGHT edge of your Mac.")
                             .foregroundStyle(.white.opacity(0.72))
                     }
                     .padding(.top, 22)
@@ -225,7 +225,7 @@ struct PortalSendView: View {
 
                     if isSending { ProgressView("Sending securely…").tint(FlickStyle.pink) }
                     StatusCard(symbol: "info.circle", headline: "Portal status", subheadline: status)
-                    Text("Files arrive in Downloads/FlickTunes on your Mac. A small arrival animation appears near the Mac pointer. Keep both devices nearby and FlickTunes open on iPhone until sending finishes.")
+                    Text("Your selected item flies off the LEFT side of iPhone, then emerges from a glowing portal on the RIGHT edge of your Mac. Files save to Downloads/FlickTunes. Keep FlickTunes open on iPhone while sending.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                 }
                 .padding(22)

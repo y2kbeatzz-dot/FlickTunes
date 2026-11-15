@@ -47,6 +47,17 @@ To check app signature validity, run `codesign --verify --deep --strict --verbos
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
 
+## What's new in v0.4.2 — RIGHT-edge Portal effect
+
+**Portal now opens on the RIGHT edge of your Mac's screen.** This is a correction to v0.4.0's pointer-adjacent notification: when a photo, video, file, link, or clipboard transfer arrives, a glowing violet/cyan/pink portal opens as a vertical oval on the far right side of your current Mac display. The received item's card emerges **from right to left** into the Mac, with Glide, Bloom, or Fade selected on iPhone. The portal glows and closes after the animation.
+
+- The portal is anchored to the *right edge*, not the pointer's horizontal position. On multiple displays it chooses the one where your pointer is, and centers vertically around its height.
+- Open FlickTunes on your Mac and click **Preview Portal** (also in the menu bar) to test the entire effect without an iPhone.
+- The overlay never steals keyboard focus or mouse clicks. With Reduce Motion enabled, the effect is simplified.
+- Your iPhone still uses the original **swipe LEFT** card gesture and still sends files to **~/Downloads/FlickTunes**, with Show in Finder on Mac.
+- This is our original visual implementation; it does not actually locate the iPhone physically beside the Mac, or enable system-wide drag-and-drop.
+- **Both apps must use the newest build.** iPhone IPA is unsigned and needs sideload signing; Mac DMG is ad-hoc signed, not notarized.
+
 ## What's new in v0.4.0 — Portal + motion gesture
 
 ### Portal: drag from iPhone toward Mac
@@ -54,7 +65,7 @@ For normal, warning-free distribution, the project needs a **Developer ID Applic
 - Open **Portal • Photos, Files & Links** from FlickTunes on iPhone.
 - Select a photo or video from the Photos picker, or any document/video from Files.
 - The selection becomes a draggable card. **Hold and drag it LEFT**: the card follows your finger, tilts, and flies off-screen when released far enough. A Send button is available for accessibility.
-- On Mac, the received file is saved (without executing it) to **~/Downloads/FlickTunes**. A floating arrival card slides in from the left edge to a position near the pointer; photos can display a real thumbnail. Use **Show in Finder** in the app to locate the item.
+- On Mac, the received file is saved (without executing it) to **~/Downloads/FlickTunes**. A glowing Portal opens on the RIGHT edge of the Mac display and the card emerges leftward. Photos can display a thumbnail. Use **Show in Finder** in the app to locate the item.
 - Select an original arrival effect: **Glide**, **Bloom**, or **Fade**. These are transitions within FlickTunes, not Canopy's animations or assets.
 - Links can also be dragged off the left edge. They appear in the Mac receiver with an explicit **Open Link** button; they never auto-launch. Clipboard text is only sent when you explicitly tap **Send Clipboard**.
 - Transfer uses the existing nearby, encrypted MultipeerConnectivity session. No cloud relay is used. Keep iPhone FlickTunes foregrounded while sending large files; a full-size movie may need to copy locally before sending.
@@ -158,4 +169,4 @@ scripts/              Generate app icon + build IPA and DMG
 project.yml            XcodeGen source of truth
 ```
 
-Version 0.4.0 — prototype under development. Created by [life999](https://guns.lol/life999).
+Version 0.4.2 — prototype under development. Created by [life999](https://guns.lol/life999).
