@@ -17,6 +17,16 @@ Every push to `main` and every manual **Run workflow** generates its own develop
 
 **Important:** The iPhone IPA is **unsigned**. An unsigned IPA is a build artifact, *not an installable app*. You must code-sign it with an Apple Development certificate/team for your device, for example by building and running `FlickTunesiOS` from Xcode with your Apple ID. The Mac app is **ad-hoc signed but not notarized**: macOS Gatekeeper may block opening it until you explicitly approve it under Privacy & Security. No Apple Developer certificate is included in this repository.
 
+## 📱 Sideloadly: install FlickTunes on iPhone
+
+**Important: choose your physical iPhone in Sideloadly's device dropdown, not your Apple Silicon Mac.** On Apple Silicon, Sideloadly can show the Mac itself as an installation destination. If its error says *Apple Silicon install failed*, check the target selection first. For the Mac use the separate `FlickTunes-macOS.dmg`, not the IPA.
+
+The iOS archive is unsigned by GitHub Actions so Sideloadly must sign it with your Apple ID before installing. Plug in the iPhone, unlock it, approve Trust if asked, select the iPhone as the target and load the latest `FlickTunes-iOS-UNSIGNED.ipa` from GitHub Releases. If the device is not shown, check the USB cable, Finder trust and developer mode.
+
+**Fixed in v0.4.1:** The previous IPA changed the app folder's name without changing the binary name. Some installers then looked for the nonexistent `Payload/FlickTunes.app/FlickTunes` executable. The build now produces a real `FlickTunes.app/FlickTunes`, verifies `CFBundleExecutable` from `Info.plist` and fails the release before upload if the archive is incorrect. Don't use the earlier v0.4.0 IPA for this installer error.
+
+If Sideloadly still fails after selecting the iPhone and using the new IPA, copy the **new error message**. Do not disable SIP or Gatekeeper to fix iPhone sideloading.
+
 ## 🍎 Mac: “FlickTunes is damaged and can’t be opened”
 
 The downloadable macOS app is a **development build**. The build is ad-hoc signed but **not Apple Developer ID signed or notarized**. A browser download is quarantined by macOS; Gatekeeper may display “damaged” even when the archive is intact. This message can also indicate a genuinely corrupted or modified app, so first confirm you got the expected release file.
