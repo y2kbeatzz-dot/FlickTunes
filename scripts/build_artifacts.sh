@@ -14,6 +14,12 @@ test -d "$MAC_APP"
 rm -rf .build/dmg
 mkdir -p .build/dmg
 cp -R "$MAC_APP" .build/dmg/FlickTunes.app
+# Apple Silicon requires a valid code signature for execution. An ad-hoc
+# signature makes our local prototype internally consistent, but DOES NOT
+# identify the developer or satisfy Gatekeeper notarization.
+# Never strip download quarantine from a release automatically.
+/usr/bin/codesign --force --sign - --timestamp=none .build/dmg/FlickTunes.app
+/usr/bin/codesign --verify --deep --strict --verbose=2 .build/dmg/FlickTunes.app
 ln -s /Applications .build/dmg/Applications
 hdiutil create -volname FlickTunes -srcfolder .build/dmg -ov -format UDZO "${PWD}/dist/FlickTunes-macOS.dmg"
 
@@ -26,4 +32,4 @@ cp -R "$IOS_APP" .build/ipa/Payload/FlickTunes.app
 (cd .build/ipa && /usr/bin/zip -q -r "$OLDPWD/dist/FlickTunes-iOS-UNSIGNED.ipa" Payload)
 ls -lh dist/*
 echo 'IMPORTANT: The iOS IPA is unsigned and will not install without signing.'
-echo 'The DMG is not notarized; first launch may require Control-click > Open.'
+echo 'The Mac app is ad-hoc signed but NOT Apple notarized. Gatekeeper will still block it until approved by the user.'
