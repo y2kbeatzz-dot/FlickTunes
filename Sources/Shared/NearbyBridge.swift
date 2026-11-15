@@ -20,6 +20,9 @@ final class NearbyBridge: NSObject, ObservableObject {
 
     var onHandoff: ((TransferPacket, MCPeerID) -> Void)?
     var onAcknowledgement: ((Bool, String) -> Void)?
+    var onPortalLink: ((URL) -> Void)?
+    var onPortalFile: ((PortalReceivedFile) -> Void)?
+    var onPortalError: ((String) -> Void)?
     /// Called on the main queue after a previously approved or manually selected Mac connects.
     var onConnected: ((MCPeerID) -> Void)?
 
@@ -190,6 +193,37 @@ final class NearbyBridge: NSObject, ObservableObject {
         }
     }
 
+    /// Sends an actual file via MCSession's resource stream, not as a giant
+    /// JSON message. Callers must keep the temporary local file until completion.
+    func sendPortalFile(
+        at url: URL, named filename: String, transition: PortalTransition,
+        completion: @escaping (Bool, String) -> Void
+    ) {
+        guard let peer = session.connectedPeers.first else {
+            completion(false, "Connect to your Mac first.")
+            return
+        }
+        let cleanName = String(filename
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "\\", with: "_")
+            .replacingOccurrences(of: ":", with: "_")
+            .prefix(120))
+        let safeName = cleanName.isEmpty ? "Transfer" : cleanName
+        let resourceName = "ft--\(transition.rawValue)--\(UUID().uuidString)--\(safeName)"
+        guard let _ = session.sendResource(at: url, withName: resourceName, toPeer: peer, withCompletionHandler: { error in
+            DispatchQueue.main.async {
+                if let error {
+                    completion(false, "Transfer failed: \(error.localizedDescription)")
+                } else {
+                    completion(true, "Sent \(safeName) to your Mac.")
+                }
+            }
+        }) else {
+            completion(false, "Could not start the file transfer. Reconnect and try again.")
+            return
+        }
+    }
+
     func stop() {
         cancelPending()
         stopDiscovery()
@@ -352,13 +386,73 @@ extension NearbyBridge: MCSessionDelegate {
                 self.onHandoff?(packet, peerID)
             case .acknowledgement:
                 self.onAcknowledgement?(message.succeeded ?? false, message.details ?? "No details")
+            case .portalLink:
+                guard let text = message.details, let url = PortalURL.normalized(text) else { return }
+                self.onPortalLink?(url)
             }
         }
     }
 
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
-    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
-    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
+    func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
+        DispatchQueue.main.async {
+            guard self.trustedPhone == peerID else { return }
+            self.status = "Receiving a Portal file…"
+        }
+    }
+
+    func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
+        // The incoming temporary file is only guaranteed to exist during this
+        // delegate callback. Move it immediately, without executing contents.
+        #if os(macOS)
+        guard trustedPhone == peerID else { return }
+        guard error == nil, let localURL else {
+            DispatchQueue.main.async {
+                self.onPortalError?("The file transfer was interrupted.")
+                self.status = "File transfer failed"
+            }
+            return
+        }
+        let parts = resourceName.split(separator: "--", maxSplits: 3, omittingEmptySubsequences: false)
+        guard parts.count == 4, parts[0] == "ft",
+              let style = PortalTransition(rawValue: String(parts[1])) else { return }
+        let rawName = String(parts[3])
+        let cleaned = rawName
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "\\", with: "_")
+            .replacingOccurrences(of: ":", with: "_")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let name = cleaned.isEmpty || cleaned == "." || cleaned == ".."
+            ? "Received File" : String(cleaned.prefix(120))
+        do {
+            let fm = FileManager.default
+            let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first!
+            let folder = downloads.appendingPathComponent("FlickTunes", isDirectory: true)
+            try fm.createDirectory(at: folder, withIntermediateDirectories: true)
+            let source = URL(fileURLWithPath: name)
+            let ext = source.pathExtension
+            let stem = source.deletingPathExtension().lastPathComponent
+            var destination = folder.appendingPathComponent(name)
+            var suffix = 2
+            while fm.fileExists(atPath: destination.path) {
+                let next = ext.isEmpty ? "\(stem) (\(suffix))" : "\(stem) (\(suffix)).\(ext)"
+                destination = folder.appendingPathComponent(next)
+                suffix += 1
+            }
+            try fm.moveItem(at: localURL, to: destination)
+            let received = PortalReceivedFile(url: destination, name: destination.lastPathComponent, transition: style)
+            DispatchQueue.main.async {
+                self.status = "Portal file received"
+                self.onPortalFile?(received)
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.status = "Could not save incoming file"
+                self.onPortalError?("File could not be saved: \(error.localizedDescription)")
+            }
+        }
+        #endif
+    }
 }
 
 extension NearbyBridge: MCNearbyServiceAdvertiserDelegate {
