@@ -203,9 +203,11 @@ struct PhoneHomeView: View {
                         .font(.footnote).foregroundStyle(.white.opacity(0.55))
                     if let toast { StatusCard(symbol: "info.circle", headline: "Handoff", subheadline: toast) }
                     HStack {
-                        Text("Created by life999")
+                        Text("Created by Ksyusha · life999")
                         Spacer()
-                        Button("About & creator") { showingAbout = true }
+                        Link("Creator page", destination: URL(string: "https://guns.lol/life999")!)
+                            .buttonStyle(.borderless)
+                        Button("About") { showingAbout = true }
                     }
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.72))
