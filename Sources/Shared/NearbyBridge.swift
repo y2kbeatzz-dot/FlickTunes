@@ -110,7 +110,12 @@ final class NearbyBridge: NSObject, ObservableObject {
         retryCount = 0
         discoveredPeers.removeAll()
         browser?.stopBrowsingForPeers()
-        browser?.startBrowsingForPeers()
+        // A new browser instance discards old discovery callbacks from an
+        // earlier scan, preventing ghost peers and repeated device rows.
+        let refreshed = MCNearbyServiceBrowser(peer: localPeer, serviceType: Self.serviceType)
+        refreshed.delegate = self
+        browser = refreshed
+        refreshed.startBrowsingForPeers()
         status = "Searching for your Mac again…"
     }
 
@@ -359,6 +364,10 @@ extension NearbyBridge: MCSessionDelegate {
 extension NearbyBridge: MCNearbyServiceAdvertiserDelegate {
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didReceiveInvitationFromPeer peerID: MCPeerID, withContext context: Data?, invitationHandler: @escaping (Bool, MCSession?) -> Void) {
         DispatchQueue.main.async {
+            guard self.advertiser === advertiser, self.mode == .advertising else {
+                invitationHandler(false, nil)
+                return
+            }
             if !self.connectedPeers.isEmpty || !self.session.connectedPeers.isEmpty {
                 // This receiver accepts one iPhone at a time. Ignore duplicate
                 // invites rather than stacking sessions and confirmation alerts.
@@ -396,7 +405,7 @@ extension NearbyBridge: MCNearbyServiceAdvertiserDelegate {
 extension NearbyBridge: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String: String]?) {
         DispatchQueue.main.async {
-            guard !self.isSuspended else { return }
+            guard self.browser === browser, self.mode == .browsing, !self.isSuspended else { return }
             guard !self.discoveredPeers.contains(peerID) else { return }
             // Bonjour can report old instances under an identical device
             // name. Show one row per Mac, preferring the saved peer identity.
@@ -412,7 +421,10 @@ extension NearbyBridge: MCNearbyServiceBrowserDelegate {
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
-        DispatchQueue.main.async { self.discoveredPeers.removeAll { $0 == peerID } }
+        DispatchQueue.main.async {
+            guard self.browser === browser else { return }
+            self.discoveredPeers.removeAll { $0 == peerID }
+        }
     }
 
     func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
