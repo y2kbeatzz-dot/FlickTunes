@@ -44,7 +44,7 @@ final class MacReceiverModel: ObservableObject {
             self.lastPortalFile = file
             self.portalStatus = "Saved \(file.name) in Downloads/FlickTunes."
             let kind: ArrivalKind = UTType(filenameExtension: file.url.pathExtension)?.conforms(to: .image) == true ? .photo : .file
-            self.portalPresenter.present(name: file.name, kind: kind, transition: file.transition)
+            self.portalPresenter.present(name: file.name, kind: kind, transition: file.transition, previewURL: kind == .photo ? file.url : nil)
         }
         nearby.onPortalLink = { [weak self] url, transition in
             guard let self else { return }
