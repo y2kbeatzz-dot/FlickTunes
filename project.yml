@@ -7,8 +7,8 @@ settings:
   base:
     SWIFT_VERSION: 5.0
     VERSIONING_SYSTEM: apple-generic
-    CURRENT_PROJECT_VERSION: 6
-    MARKETING_VERSION: 0.4.1
+    CURRENT_PROJECT_VERSION: 7
+    MARKETING_VERSION: 0.4.2
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: NO
 configs:
@@ -40,8 +40,8 @@ targets:
         CFBundleDisplayName: FlickTunes
         CFBundleName: FlickTunes
         CFBundleExecutable: '$(EXECUTABLE_NAME)'
-        CFBundleShortVersionString: '0.4.1'
-        CFBundleVersion: '6'
+        CFBundleShortVersionString: '0.4.2'
+        CFBundleVersion: '7'
         NSAppleMusicUsageDescription: FlickTunes needs Music library permission to identify the song currently playing in Apple Music.
         NSMotionUsageDescription: FlickTunes uses motion only while open to detect the flick gesture you enable.
         NSLocalNetworkUsageDescription: FlickTunes connects directly to your Mac to transfer Apple Music playback position.
@@ -70,8 +70,8 @@ targets:
       path: Build/Mac-Info.plist
       properties:
         CFBundleDisplayName: FlickTunes
-        CFBundleShortVersionString: '0.4.1'
-        CFBundleVersion: '6'
+        CFBundleShortVersionString: '0.4.2'
+        CFBundleVersion: '7'
         LSApplicationCategoryType: public.app-category.music
         NSAppleEventsUsageDescription: FlickTunes needs permission to control the Music app when receiving songs from your iPhone.
         NSLocalNetworkUsageDescription: FlickTunes discovers and pairs with your iPhone over the local network.
