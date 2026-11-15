@@ -23,9 +23,9 @@ struct FlickTunesHelpView: View {
             return [
                 GuideStep(number: 1, icon: "laptopcomputer", title: "Start RIFT on Mac", description: "Open the receiver on your Mac. It stays running in the menu bar even if you close its window."),
                 GuideStep(number: 2, icon: "wifi", title: "Allow nearby access", description: "Keep the devices near each other with Wi-Fi and Bluetooth enabled. Allow Local Network access when prompted."),
-                GuideStep(number: 3, icon: "music.note", title: "Play a song in Apple Music", description: "Start your song in the Music app, then switch to FlickTunes and allow Media & Apple Music access."),
+                GuideStep(number: 3, icon: "music.note", title: "Play a song in Apple Music", description: "Start your song in the Music app, then switch to RIFT and allow Media & Apple Music access."),
                 GuideStep(number: 4, icon: "link", title: "Pair once, then reconnect automatically", description: "Select your Mac the first time and approve it there. RIFT remembers both devices, so you don't need to select or type anything every launch."),
-                GuideStep(number: 5, icon: "arrow.up.right", title: "Flick to send music", description: "The Music screen has a live gesture meter and a Test mode. Gently flick the iPhone while FlickTunes is open. Adjust sensitivity or use the send button."),
+                GuideStep(number: 5, icon: "arrow.up.right", title: "Flick to send music", description: "The Music screen has a live gesture meter and a Test mode. Gently flick the iPhone while RIFT is open. Adjust sensitivity or use the send button."),
                 GuideStep(number: 6, icon: "square.on.square.dashed", title: "Portal: drag photos, files and links", description: "Choose Portal from the Music screen. Pick a photo or file, or paste a link. Drag its card off the left edge and release. It flies off iPhone; a glowing portal opens on the RIGHT edge of the Mac screen and the file emerges from it after transfer.")
             ]
         case .mac:
@@ -35,7 +35,7 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 3, icon: "checkmark.shield", title: "Approve your iPhone once", description: "Accept the first pairing request from your iPhone. Approved phones are remembered; there's no need to repeat setup every time."),
                 GuideStep(number: 4, icon: "music.note", title: "Make the song available", description: "The song must exist in your Mac Music library. Streaming-only tracks outside the library may not resume."),
                 GuideStep(number: 5, icon: "slider.horizontal.3", title: "Enable Music automation", description: "Allow RIFT to control Music when prompted. Find the permission under System Settings → Privacy & Security → Automation."),
-                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Catch Portal drops", description: "Open Portal on iPhone and swipe a selected item off the left edge. Mac saves photos and files to Downloads/RIFT, opens an animated portal on the RIGHT screen edge, and makes the item pop out. Use Test Portal Effect in the Mac app to try the effect without sending. Links remain clickable in FlickTunes.")
+                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Catch Portal drops", description: "Open Portal on iPhone and swipe a selected item off the left edge. Mac saves photos and files to Downloads/RIFT, opens an animated portal on the RIGHT screen edge, and makes the item pop out. Use Test Portal Effect in the Mac app to try the effect without sending. Links remain clickable in RIFT.")
             ]
         }
     }
@@ -71,7 +71,7 @@ struct FlickTunesHelpView: View {
                             Label("Connection troubleshooting", systemImage: "wrench.and.screwdriver")
                                 .font(.headline)
                             Text("If you see Connecting for too long, keep both apps open and tap Rescan on iPhone. RIFT remembers the last approved Mac. Use Forget Pairing on BOTH devices only when you need a fresh start.")
-                            Text("iOS may disconnect nearby sessions while FlickTunes is in the background. Reopening it restarts discovery and the saved flick gesture setting. A flick can wait up to 20 seconds for an already-paired Mac to reconnect; it expires rather than transferring later without your knowledge.")
+                            Text("iOS may disconnect nearby sessions while RIFT is in the background. Reopening it restarts discovery and the saved flick gesture setting. A flick can wait up to 20 seconds for an already-paired Mac to reconnect; it expires rather than transferring later without your knowledge.")
                         }
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.8))
@@ -126,7 +126,7 @@ struct FlickTunesAboutView: View {
                             .buttonStyle(.borderedProminent)
                             .tint(FlickStyle.violet)
                             Link(destination: URL(string: "https://github.com/y2kbeatzz-dot/FlickTunes")!) {
-                                Label("View RIFT on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
+                                Label("View RIFT source on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                                     .frame(maxWidth: .infinity, alignment: .leading)
                             }
                             .buttonStyle(.bordered)
@@ -137,7 +137,7 @@ struct FlickTunesAboutView: View {
                             Label("Flick gesture", systemImage: "hand.draw").font(.headline)
                             Text("Play Apple Music on iPhone, open RIFT, and flick gently. The sensor meter and Test mode show whether a gesture registers without sending.")
                             Label("Your choice stays saved", systemImage: "checkmark.shield").font(.headline)
-                            Text("Pairing, motion sensitivity and your selected gesture preference are saved locally. Motion sensing only runs while FlickTunes is foregrounded. Portal's left-edge card swipe is a separate gesture.")
+                            Text("Pairing, motion sensitivity and your selected gesture preference are saved locally. Motion sensing only runs while RIFT is foregrounded. Portal's left-edge card swipe is a separate gesture.")
                         }
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.8))
