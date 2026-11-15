@@ -7,8 +7,8 @@ settings:
   base:
     SWIFT_VERSION: 5.0
     VERSIONING_SYSTEM: apple-generic
-    CURRENT_PROJECT_VERSION: 7
-    MARKETING_VERSION: 0.4.2
+    CURRENT_PROJECT_VERSION: 9
+    MARKETING_VERSION: 0.9.0
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: NO
 configs:
@@ -28,8 +28,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.flicktunes.iphone
         # Match the .app directory and executable: Sideloadly expects
-        # Payload/FlickTunes.app/FlickTunes for the iOS archive.
-        PRODUCT_NAME: FlickTunes
+        # Payload/RIFT.app/RIFT for the iOS archive.
+        PRODUCT_NAME: RIFT
         INFOPLIST_FILE: Build/iOS-Info.plist
         TARGETED_DEVICE_FAMILY: '1'
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -37,14 +37,14 @@ targets:
     info:
       path: Build/iOS-Info.plist
       properties:
-        CFBundleDisplayName: FlickTunes
-        CFBundleName: FlickTunes
+        CFBundleDisplayName: RIFT
+        CFBundleName: RIFT
         CFBundleExecutable: '$(EXECUTABLE_NAME)'
-        CFBundleShortVersionString: '0.4.2'
-        CFBundleVersion: '7'
-        NSAppleMusicUsageDescription: FlickTunes needs Music library permission to identify the song currently playing in Apple Music.
-        NSMotionUsageDescription: FlickTunes uses motion only while open to detect the flick gesture you enable.
-        NSLocalNetworkUsageDescription: FlickTunes connects directly to your Mac to transfer Apple Music playback position.
+        CFBundleShortVersionString: '0.9.0'
+        CFBundleVersion: '9'
+        NSAppleMusicUsageDescription: RIFT needs Music library permission to identify the song currently playing in Apple Music.
+        NSMotionUsageDescription: RIFT uses motion only while open to detect the flick gesture you enable.
+        NSLocalNetworkUsageDescription: RIFT connects directly to your Mac to transfer Apple Music playback position.
         NSBonjourServices:
           - _flicktunes._tcp
         UILaunchScreen: {}
@@ -63,18 +63,19 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.flicktunes.mac
+        PRODUCT_NAME: RIFT
         INFOPLIST_FILE: Build/Mac-Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_APP_SANDBOX: NO
     info:
       path: Build/Mac-Info.plist
       properties:
-        CFBundleDisplayName: FlickTunes
-        CFBundleShortVersionString: '0.4.2'
-        CFBundleVersion: '7'
+        CFBundleDisplayName: RIFT
+        CFBundleShortVersionString: '0.9.0'
+        CFBundleVersion: '9'
         LSApplicationCategoryType: public.app-category.music
-        NSAppleEventsUsageDescription: FlickTunes needs permission to control the Music app when receiving songs from your iPhone.
-        NSLocalNetworkUsageDescription: FlickTunes discovers and pairs with your iPhone over the local network.
+        NSAppleEventsUsageDescription: RIFT needs permission to control the Music app when receiving songs from your iPhone.
+        NSLocalNetworkUsageDescription: RIFT discovers and pairs with your iPhone over the local network.
         NSBonjourServices:
           - _flicktunes._tcp
         ITSAppUsesNonExemptEncryption: false

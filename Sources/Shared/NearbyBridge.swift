@@ -53,7 +53,7 @@ final class NearbyBridge: NSObject, ObservableObject {
         #if os(iOS)
         let name = UIDevice.current.name
         #else
-        let name = Host.current().localizedName ?? "FlickTunes Mac"
+        let name = Host.current().localizedName ?? "RIFT Mac"
         #endif
         // A fresh MCPeerID every launch makes old pairings impossible to restore.
         let peer = Self.loadPeer(Self.identityKey) ?? MCPeerID(displayName: String(name.prefix(32)))
@@ -350,7 +350,7 @@ final class NearbyBridge: NSObject, ObservableObject {
             }
             if approvedPeer == peer { approvedPeer = nil }
             if !connectedPeers.isEmpty { status = connectionDescription }
-            else if isSuspended { status = "Paused — reopen FlickTunes to reconnect" }
+            else if isSuspended { status = "Paused — reopen RIFT to reconnect" }
             else if mode == .browsing, preferredPeer == peer { scheduleReconnect(peer) }
             else if mode == .browsing { status = "Connection ended — select your Mac to retry" }
             else { status = "Waiting for your saved iPhone to reconnect" }
@@ -431,7 +431,7 @@ extension NearbyBridge: MCSessionDelegate {
         do {
             let fm = FileManager.default
             let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first!
-            let folder = downloads.appendingPathComponent("FlickTunes", isDirectory: true)
+            let folder = downloads.appendingPathComponent("RIFT", isDirectory: true)
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
             let nameURL = URL(fileURLWithPath: name)
             let ext = nameURL.pathExtension

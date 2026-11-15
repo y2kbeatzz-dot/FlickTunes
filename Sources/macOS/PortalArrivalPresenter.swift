@@ -104,6 +104,7 @@ private struct RightEdgePortalScene: View {
     @State private var portalOpen = false
     @State private var emerged = false
     @State private var closing = false
+    @State private var orbit = false
 
     private let purple = Color(red: 0.59, green: 0.28, blue: 1.0)
     private let pink = Color(red: 1.0, green: 0.26, blue: 0.65)
@@ -115,6 +116,11 @@ private struct RightEdgePortalScene: View {
         case .glide: return .spring(response: 0.67, dampingFraction: 0.70)
         case .bloom: return .spring(response: 0.54, dampingFraction: 0.58)
         case .fade: return .easeOut(duration: 0.70)
+        case .vortex: return .spring(response: 0.95, dampingFraction: 0.77)
+        case .pulse: return .spring(response: 0.38, dampingFraction: 0.48)
+        case .warp: return .easeOut(duration: 0.34)
+        case .spark: return .spring(response: 0.70, dampingFraction: 0.66)
+        case .ripple: return .easeOut(duration: 0.80)
         }
     }
 
@@ -151,12 +157,43 @@ private struct RightEdgePortalScene: View {
                     .opacity(portalOpen && !closing && !reduceMotion ? 0.70 : 0)
             }
 
+            if portalOpen && !reduceMotion && (transition == .spark || transition == .vortex || transition == .ripple) {
+                ForEach(0..<12, id: \.self) { i in
+                    let angle = Double(i) * 0.5236
+                    Circle()
+                        .fill(i.isMultiple(of: 3) ? cyan : pink)
+                        .frame(width: CGFloat(i.isMultiple(of: 3) ? 7 : 4))
+                        .blur(radius: 0.6)
+                        .offset(
+                            x: orbit ? -CGFloat(70 + (i % 5) * 35) : 25,
+                            y: CGFloat(sin(angle) * (orbit ? 100 : 34))
+                        )
+                        .opacity(orbit && !closing ? 0.85 : 0)
+                }
+            }
+
+            if portalOpen && !reduceMotion && (transition == .ripple || transition == .pulse) {
+                ForEach(0..<3, id: \.self) { i in
+                    Ellipse()
+                        .stroke(i == 1 ? cyan.opacity(0.8) : pink.opacity(0.65), lineWidth: 3)
+                        .frame(width: CGFloat(85 + i * 50), height: CGFloat(212 + i * 22))
+                        .scaleEffect(orbit ? 1.35 : 0.55)
+                        .opacity(orbit && !closing ? 0.55 : 0)
+                        .offset(x: 16)
+                }
+            }
+
             arrivedCard
                 .frame(width: 302, height: 132)
                 .padding(.trailing, 104)
                 // Start inside the right-edge portal, fly LEFT into the Mac.
-                .offset(x: reduceMotion ? 0 : (emerged ? 0 : 350))
-                .scaleEffect(reduceMotion || emerged ? 1 : (transition == .bloom ? 0.34 : 0.85))
+                .offset(x: reduceMotion ? 0 : (emerged ? 0 : (transition == .warp ? 440 : 350)))
+                .scaleEffect(
+                    x: reduceMotion || emerged ? 1 : (transition == .warp ? 2.0 : transition == .bloom ? 0.34 : transition == .pulse ? 0.25 : 0.85),
+                    y: reduceMotion || emerged ? 1 : (transition == .warp ? 0.24 : transition == .bloom ? 0.34 : 0.85)
+                )
+                .rotationEffect(.degrees(reduceMotion || emerged ? 0 : (transition == .vortex ? 320 : 0)))
+                .blur(radius: !reduceMotion && !emerged && (transition == .fade || transition == .warp) ? 16 : 0)
                 .opacity(emerged && !closing ? 1 : 0)
 
             portalRing
@@ -167,6 +204,9 @@ private struct RightEdgePortalScene: View {
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.12) : .easeOut(duration: 0.33)) {
                 portalOpen = true
+            }
+            withAnimation(reduceMotion ? .none : .easeOut(duration: transition == .spark ? 1.3 : 0.85)) {
+                orbit = true
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + (reduceMotion ? 0.07 : 0.25)) {
                 withAnimation(emergeAnimation) { emerged = true }
@@ -258,7 +298,7 @@ private struct RightEdgePortalScene: View {
                     .font(.system(size: 12))
                     .foregroundStyle(.white.opacity(0.80))
                     .lineLimit(2)
-                Label("FlickTunes • Right-edge Portal", systemImage: "sparkles")
+                Label("RIFT • \(transition.title)", systemImage: "sparkles")
                     .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(cyan)
             }

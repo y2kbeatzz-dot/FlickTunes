@@ -1,4 +1,4 @@
-name: Build FlickTunes IPA and DMG
+name: Build RIFT IPA and DMG
 
 on:
   workflow_dispatch:
@@ -43,9 +43,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s dist/FlickTunes-macOS.dmg
-          test -s dist/FlickTunes-iOS-UNSIGNED.ipa
-          (cd dist && shasum -a 256 FlickTunes-macOS.dmg FlickTunes-iOS-UNSIGNED.ipa > SHA256SUMS.txt)
+          test -s dist/RIFT-macOS.dmg
+          test -s dist/RIFT-iOS-UNSIGNED.ipa
+          (cd dist && shasum -a 256 RIFT-macOS.dmg RIFT-iOS-UNSIGNED.ipa > SHA256SUMS.txt)
           ls -lh dist/
       # Deliberately do not use actions/upload-artifact: the repository has
       # hit the GitHub Actions artifact storage quota. Release assets are
@@ -59,32 +59,32 @@ jobs:
           set -euo pipefail
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             release_tag="${GITHUB_REF_NAME}"
-            release_title="FlickTunes ${GITHUB_REF_NAME}"
+            release_title="RIFT ${GITHUB_REF_NAME}"
             prerelease_flag=()
           else
             # A unique tag per run/attempt avoids release asset collisions,
             # including when GitHub release immutability is enabled.
             release_tag="build-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}"
-            release_title="FlickTunes Development Build #${GITHUB_RUN_NUMBER}"
+            release_title="RIFT Build #${GITHUB_RUN_NUMBER}"
             prerelease_flag=(--prerelease)
           fi
 
           cat > dist/RELEASE_NOTES.md <<EOF
-          FlickTunes experimental build from commit ${GITHUB_SHA}.
+          RIFT v0.9.0 launch candidate from commit ${GITHUB_SHA}.
 
-          - FlickTunes-macOS.dmg: macOS app, ad-hoc signed for app integrity, but NOT Developer ID signed or notarized. macOS Gatekeeper can block launch; see README for verification and narrowly scoped approval instructions.
-          - FlickTunes-iOS-UNSIGNED.ipa: unsigned iPhone build. It cannot be
+          - RIFT-macOS.dmg: macOS app, ad-hoc signed for app integrity, but NOT Developer ID signed or notarized. macOS Gatekeeper can block launch; see README for verification and narrowly scoped approval instructions.
+          - RIFT-iOS-UNSIGNED.ipa: unsigned iPhone build. It cannot be
             installed directly on a real iPhone until it is signed for your device.
             Open the project in Xcode and sign the iOS target using your Apple ID.
           - SHA256SUMS.txt: file checksums.
 
-          This is a prototype; actual iPhone-to-Mac Apple Music handoff needs
+          Real iPhone-to-Mac Apple Music handoff still needs
           testing on devices. The Mac can only match tracks in its Music library.
           EOF
 
           files=(
-            dist/FlickTunes-macOS.dmg
-            dist/FlickTunes-iOS-UNSIGNED.ipa
+            dist/RIFT-macOS.dmg
+            dist/RIFT-iOS-UNSIGNED.ipa
             dist/SHA256SUMS.txt
           )
           if gh release view "${release_tag}" >/dev/null 2>&1; then
@@ -99,7 +99,7 @@ jobs:
           release_url="$(gh release view "${release_tag}" --json url --jq '.url')"
           echo "Published build at ${release_url}"
           {
-            echo "## FlickTunes download"
+            echo "## RIFT download"
             echo ""
             echo "[Download the macOS DMG and unsigned iOS IPA](${release_url})"
             echo ""

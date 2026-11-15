@@ -1,4 +1,4 @@
-// Generates matching FlickTunes icons without requiring any binary artwork in Git.
+// Generates matching RIFT icons without requiring any binary artwork in Git.
 // Usage (on macOS): swift scripts/generate_icons.swift
 import AppKit
 import CoreGraphics
@@ -18,7 +18,7 @@ func makeIcon(_ pixels: Int, to file: URL) throws {
                                        colorSpaceName: .deviceRGB,
                                        bytesPerRow: 0, bitsPerPixel: 0),
           let graphics = NSGraphicsContext(bitmapImageRep: bitmap) else {
-        throw NSError(domain: "FlickTunes", code: 1, userInfo: [NSLocalizedDescriptionKey: "Couldn't render app icon"])
+        throw NSError(domain: "RIFT", code: 1, userInfo: [NSLocalizedDescriptionKey: "Couldn't render app icon"])
     }
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = graphics
@@ -37,56 +37,65 @@ func makeIcon(_ pixels: Int, to file: URL) throws {
     ] as CFArray, locations: [0, 0.55, 1])!
     cg.drawLinearGradient(gradient, start: CGPoint(x: 0, y: 1100), end: CGPoint(x: 980, y: 0), options: [])
 
-    // Phone outline, tilted to emphasize the gesture.
+    // RIFT: a luminous dimensional portal with an arriving tile.
+    let glow = NSColor(red: 0.98, green: 0.28, blue: 0.74, alpha: 0.19).cgColor
+    cg.setFillColor(glow)
+    cg.fillEllipse(in: CGRect(x: 585, y: 162, width: 340, height: 700))
+
     cg.saveGState()
-    cg.translateBy(x: 300, y: 510)
-    cg.rotate(by: 0.16)
-    cg.setStrokeColor(NSColor.white.withAlphaComponent(0.94).cgColor)
-    cg.setLineWidth(26)
-    cg.addPath(CGPath(roundedRect: CGRect(x: -118, y: -205, width: 236, height: 410), cornerWidth: 44, cornerHeight: 44, transform: nil))
-    cg.strokePath()
-    cg.setStrokeColor(NSColor.white.withAlphaComponent(0.40).cgColor)
-    cg.setLineWidth(10)
-    cg.move(to: CGPoint(x: -29, y: -170)); cg.addLine(to: CGPoint(x: 29, y: -170)); cg.strokePath()
+    cg.translateBy(x: 742, y: 512)
+    for (index, radius) in [CGFloat(17), 8, 3].enumerated() {
+        cg.setStrokeColor(
+            (index == 0
+                ? NSColor(red: 0.28, green: 0.91, blue: 1.0, alpha: 0.7)
+                : NSColor(red: 1.0, green: 0.44, blue: 0.90, alpha: 0.92)).cgColor
+        )
+        cg.setLineWidth(radius)
+        cg.strokeEllipse(in: CGRect(x: -100, y: -272, width: 200, height: 544))
+    }
+    cg.setFillColor(NSColor(red: 0.07, green: 0.03, blue: 0.16, alpha: 1).cgColor)
+    cg.fillEllipse(in: CGRect(x: -76, y: -246, width: 152, height: 492))
     cg.restoreGState()
 
-    // Laptop outline.
-    cg.setStrokeColor(NSColor.white.withAlphaComponent(0.94).cgColor)
-    cg.setLineWidth(25)
-    cg.addPath(CGPath(roundedRect: CGRect(x: 555, y: 340, width: 255, height: 210), cornerWidth: 18, cornerHeight: 18, transform: nil))
+    // The content card passes through the portal from right to left.
+    cg.saveGState()
+    cg.translateBy(x: 385, y: 512)
+    cg.rotate(by: -0.11)
+    let card = CGRect(x: -191, y: -155, width: 382, height: 310)
+    cg.setFillColor(NSColor(red: 0.20, green: 0.11, blue: 0.40, alpha: 1).cgColor)
+    cg.addPath(CGPath(roundedRect: card, cornerWidth: 58, cornerHeight: 58, transform: nil))
+    cg.fillPath()
+    cg.setStrokeColor(NSColor.white.withAlphaComponent(0.95).cgColor)
+    cg.setLineWidth(23)
+    cg.addPath(CGPath(roundedRect: card.insetBy(dx: 7, dy: 7), cornerWidth: 50, cornerHeight: 50, transform: nil))
     cg.strokePath()
-    cg.setLineCap(.round)
-    cg.move(to: CGPoint(x: 515, y: 318)); cg.addLine(to: CGPoint(x: 856, y: 318)); cg.strokePath()
+    let picture = CGRect(x: -135, y: -87, width: 138, height: 154)
+    cg.setFillColor(NSColor(red: 0.96, green: 0.26, blue: 0.61, alpha: 1).cgColor)
+    cg.addPath(CGPath(roundedRect: picture, cornerWidth: 25, cornerHeight: 25, transform: nil))
+    cg.fillPath()
+    cg.setFillColor(NSColor.white.withAlphaComponent(0.92).cgColor)
+    cg.fillEllipse(in: CGRect(x: -95, y: 7, width: 47, height: 47))
+    cg.move(to: CGPoint(x: -116, y: -65))
+    cg.addLine(to: CGPoint(x: -57, y: 0))
+    cg.addLine(to: CGPoint(x: -15, y: -65))
+    cg.closePath()
+    cg.fillPath()
+    cg.restoreGState()
 
-    // Three curved 'flick' waves.
-    for (index, alpha) in [(0, CGFloat(0.30)), (1, CGFloat(0.60)), (2, CGFloat(0.95))] {
-        let shift = CGFloat(index) * 32
-        cg.setStrokeColor(NSColor.white.withAlphaComponent(alpha).cgColor)
-        cg.setLineWidth(19)
-        cg.addArc(center: CGPoint(x: 412, y: 545), radius: 80 + shift, startAngle: -.pi/8, endAngle: .pi/2.5, clockwise: false)
+    // Motion streaks connect the moving card to the dimensional slit.
+    for i in 0..<3 {
+        let y = CGFloat(422 + i * 87)
+        cg.setStrokeColor(NSColor.white.withAlphaComponent(0.65 - CGFloat(i) * 0.12).cgColor)
+        cg.setLineWidth(CGFloat(14 - i * 2))
+        cg.setLineCap(.round)
+        cg.move(to: CGPoint(x: 548, y: y))
+        cg.addLine(to: CGPoint(x: 636, y: y))
         cg.strokePath()
     }
-
-    // Note tiles matching the purple-pink visual system.
-    func noteTile(x: CGFloat, y: CGFloat, width: CGFloat) {
-        let rect = CGRect(x: x, y: y, width: width, height: width)
-        cg.setFillColor(NSColor(red: 1.0, green: 0.27, blue: 0.53, alpha: 1).cgColor)
-        cg.addPath(CGPath(roundedRect: rect, cornerWidth: width * 0.22, cornerHeight: width * 0.22, transform: nil)); cg.fillPath()
-        cg.setStrokeColor(NSColor.white.cgColor)
-        cg.setFillColor(NSColor.white.cgColor)
-        cg.setLineWidth(width * 0.065)
-        let shaftX = x + width * 0.63
-        cg.move(to: CGPoint(x: shaftX, y: y + width * 0.25))
-        cg.addLine(to: CGPoint(x: shaftX, y: y + width * 0.72)); cg.strokePath()
-        let head = CGRect(x: x + width * 0.29, y: y + width * 0.18, width: width * 0.36, height: width * 0.22)
-        cg.fillEllipse(in: head)
-    }
-    noteTile(x: 262, y: 480, width: 90)
-    noteTile(x: 635, y: 398, width: 85)
     cg.flush()
     NSGraphicsContext.restoreGraphicsState()
     guard let data = bitmap.representation(using: .png, properties: [:]) else {
-        throw NSError(domain: "FlickTunes", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to encode PNG"])
+        throw NSError(domain: "RIFT", code: 2, userInfo: [NSLocalizedDescriptionKey: "Unable to encode PNG"])
     }
     try data.write(to: file, options: .atomic)
 }
@@ -102,4 +111,4 @@ let macSizes: [(Int, String)] = [
 for (size, filename) in macSizes {
     try makeIcon(size, to: mac.appendingPathComponent(filename))
 }
-print("Generated FlickTunes iOS + macOS icons")
+print("Generated RIFT iOS + macOS icons")
