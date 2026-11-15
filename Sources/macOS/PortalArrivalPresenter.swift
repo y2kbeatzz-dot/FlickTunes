@@ -66,7 +66,7 @@ final class PortalArrivalPresenter {
     }
 }
 
-enum ArrivalKind {
+enum ArrivalKind: Equatable {
     case file, photo, link, clipboard
 
     var icon: String {
