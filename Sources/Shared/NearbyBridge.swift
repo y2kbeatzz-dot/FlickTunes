@@ -21,6 +21,7 @@ final class NearbyBridge: NSObject, ObservableObject {
     var onHandoff: ((TransferPacket, MCPeerID) -> Void)?
     var onAcknowledgement: ((Bool, String) -> Void)?
     var onPortalLink: ((URL) -> Void)?
+    var onPortalText: ((String) -> Void)?
     var onPortalFile: ((PortalReceivedFile) -> Void)?
     var onPortalError: ((String) -> Void)?
     /// Called on the main queue after a previously approved or manually selected Mac connects.
@@ -389,6 +390,9 @@ extension NearbyBridge: MCSessionDelegate {
             case .portalLink:
                 guard let text = message.details, let url = PortalURL.normalized(text) else { return }
                 self.onPortalLink?(url)
+            case .portalText:
+                guard let text = message.details, text.count <= 100_000 else { return }
+                self.onPortalText?(text)
             }
         }
     }
