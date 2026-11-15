@@ -94,8 +94,14 @@ final class NearbyBridge: NSObject, ObservableObject {
         invite(peer, automatically: false)
     }
 
+    /// Persisted peer identity, not just the visible device name.
+    /// A stale flick should never be delivered to a different device that
+    /// happens to advertise the same display name.
+    var savedMacPeer: MCPeerID? { preferredPeer }
+
     func canConnect(to peer: MCPeerID) -> Bool {
-        mode == .browsing && !isSuspended && connectingPeer == nil && !connectedPeers.contains(peer)
+        mode == .browsing && !isSuspended && connectingPeer == nil &&
+        connectedPeers.isEmpty && discoveredPeers.contains(peer)
     }
 
     func rescan() {
