@@ -24,14 +24,14 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 1, icon: "laptopcomputer", title: "Start FlickTunes on Mac", description: "Open the receiver on your Mac. It stays running in the menu bar even if you close its window."),
                 GuideStep(number: 2, icon: "wifi", title: "Allow nearby access", description: "Keep the devices near each other with Wi-Fi and Bluetooth enabled. Allow Local Network access when prompted."),
                 GuideStep(number: 3, icon: "music.note", title: "Play a song in Apple Music", description: "Start your song in the Music app, then switch to FlickTunes and allow Media & Apple Music access."),
-                GuideStep(number: 4, icon: "link", title: "Pair with your Mac", description: "Choose your Mac once and approve the request on the Mac. Approved devices are remembered."),
-                GuideStep(number: 5, icon: "arrow.up.right", title: "Flick or tap", description: "Tap Flick to Mac, or enable motion flick and move your phone gently while FlickTunes is visible.")
+                GuideStep(number: 4, icon: "link", title: "Pair once, then reconnect automatically", description: "Select your Mac the first time and approve it there. FlickTunes remembers both devices, so you don't need to select or type anything every launch."),
+                GuideStep(number: 5, icon: "arrow.up.right", title: "Gently flick your iPhone", description: "The motion gesture is enabled by default and your preference is saved. With FlickTunes open on iPhone, make a short gentle flick to send the song. The button is an optional backup.")
             ]
         case .mac:
             return [
                 GuideStep(number: 1, icon: "desktopcomputer", title: "Keep the receiver running", description: "You can close the FlickTunes window; the menu-bar receiver continues running until you quit the app."),
                 GuideStep(number: 2, icon: "wifi", title: "Prepare both devices", description: "Keep Wi-Fi and Bluetooth enabled, and approve Local Network access."),
-                GuideStep(number: 3, icon: "checkmark.shield", title: "Approve your iPhone once", description: "Choose this Mac on your iPhone and accept the first pairing request. Recognized devices reconnect automatically."),
+                GuideStep(number: 3, icon: "checkmark.shield", title: "Approve your iPhone once", description: "Accept the first pairing request from your iPhone. Approved phones are remembered; there's no need to repeat setup every time."),
                 GuideStep(number: 4, icon: "music.note", title: "Make the song available", description: "The song must exist in your Mac Music library. Streaming-only tracks outside the library may not resume."),
                 GuideStep(number: 5, icon: "slider.horizontal.3", title: "Enable Music automation", description: "Allow FlickTunes to control Music when prompted. Find the permission under System Settings → Privacy & Security → Automation.")
             ]
@@ -68,8 +68,8 @@ struct FlickTunesHelpView: View {
                         VStack(alignment: .leading, spacing: 10) {
                             Label("Connection troubleshooting", systemImage: "wrench.and.screwdriver")
                                 .font(.headline)
-                            Text("Stuck on Connecting? Tap Rescan on iPhone. To start over, select Forget Pairing on both devices, then approve the connection again.")
-                            Text("iOS disconnects nearby sessions when apps are suspended. FlickTunes will attempt to reconnect when you return to it, but it cannot stay connected continuously in the background.")
+                            Text("If you see Connecting for too long, keep both apps open and tap Rescan on iPhone. FlickTunes remembers the last approved Mac. Use Forget Pairing on BOTH devices only when you need a fresh start.")
+                            Text("iOS may disconnect nearby sessions while FlickTunes is in the background. Reopening it restarts discovery and the saved flick gesture setting. A flick can wait up to 20 seconds for an already-paired Mac to reconnect; it expires rather than transferring later without your knowledge.")
                         }
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.8))
@@ -104,7 +104,7 @@ struct FlickTunesAboutView: View {
                             .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 28))
                         Text("FlickTunes")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
-                        Text("Version 0.2.0 • Preview")
+                        Text("Version \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Preview") • Preview")
                             .font(.subheadline).foregroundStyle(.white.opacity(0.65))
                         Text("Flick your music to your Mac.")
                             .foregroundStyle(.white.opacity(0.8))
@@ -112,7 +112,7 @@ struct FlickTunesAboutView: View {
                             Text("CREATED BY")
                                 .font(.caption.bold()).foregroundStyle(FlickStyle.pink)
                             Text("life999").font(.title2.bold())
-                            Text("A music handoff app created for iPhone and Mac.")
+                            Text("Designed and created by life999. A nearby Apple Music handoff experience for iPhone and Mac.")
                                 .foregroundStyle(.white.opacity(0.7))
                             Link(destination: URL(string: "https://guns.lol/life999")!) {
                                 Label("Creator page · guns.lol/life999", systemImage: "link")
@@ -128,6 +128,17 @@ struct FlickTunesAboutView: View {
                         }
                         .padding(19)
                         .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
+                        VStack(alignment: .leading, spacing: 10) {
+                            Label("Flick gesture", systemImage: "hand.draw").font(.headline)
+                            Text("Once paired, play Apple Music on your iPhone, open FlickTunes, and flick gently toward your Mac. No repeated pairing or tapping needed.")
+                            Label("Your choice stays saved", systemImage: "checkmark.shield").font(.headline)
+                            Text("Flick motion preferences and your approved device are remembered on your own devices. Motion sensing only runs while FlickTunes is open and active.")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .padding(18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
                         Text("Independent project, not affiliated with Apple. Transfers stay between approved nearby devices.")
                             .font(.footnote)
                             .foregroundStyle(.white.opacity(0.57))
