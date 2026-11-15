@@ -15,9 +15,10 @@ struct PortalSendView: View {
     @State private var stagedName = ""
     @State private var stagedImage = false
     @State private var isSending = false
-    @State private var status = "Select a photo or file to start."
+    @State private var status = "Choose an item above to begin."
     @State private var linkText = ""
-    @State private var transition: PortalTransition = .glide
+    @AppStorage("rift.portal.effect") private var savedEffect = PortalTransition.glide.rawValue
+    private var transition: PortalTransition { PortalTransition(rawValue: savedEffect) ?? .glide }
     @State private var flying = false
     @State private var dragOffset: CGFloat = 0
     @State private var linkDragOffset: CGFloat = 0
@@ -31,49 +32,49 @@ struct PortalSendView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     HStack {
                         Button { dismiss() } label: {
-                            Label("Back to Music", systemImage: "chevron.left")
+                            Label("Music", systemImage: "chevron.left")
                         }
                         .buttonStyle(.bordered)
                         Spacer()
-                        Text("PORTAL")
+                        Text("RIFT • SEND")
                             .font(.caption.bold())
                             .foregroundStyle(FlickStyle.pink)
                     }
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("Portal.")
+                        Text("Send anything.")
                             .font(.system(size: 38, weight: .bold, design: .rounded))
-                        Text("Throw it. It lands on your Mac.")
+                        Text("Swipe it away. Watch it arrive.")
                             .font(.headline)
                             .foregroundStyle(FlickStyle.pink)
-                        Text("Drag LEFT on your iPhone. A glowing portal opens on the RIGHT edge of your Mac.")
+                        Text("Choose a photo, video, document or link. Drag its card left and RIFT opens on the right edge of your Mac.")
                             .foregroundStyle(.white.opacity(0.72))
                     }
                     .padding(.top, 22)
 
                     StatusCard(
                         symbol: nearby.connectedPeers.isEmpty ? "wifi.exclamationmark" : "checkmark.circle.fill",
-                        headline: nearby.connectedPeers.isEmpty ? "Waiting for your Mac" : "Mac ready",
+                        headline: nearby.connectedPeers.isEmpty ? "Mac not connected" : "Connected and ready",
                         subheadline: nearby.connectedPeers.isEmpty
-                            ? "Pair in the Music tab first. Portal uses the same saved connection."
+                            ? "Go back to Music to connect your Mac once. RIFT will remember it."
                             : "Connected to \(nearby.connectedPeers.first?.displayName ?? "Mac")."
                     )
 
                     HStack(spacing: 12) {
                         PhotosPicker(selection: $selectedPhoto, matching: .any(of: [.images, .videos])) {
-                            Label("Photo / Video", systemImage: "photo.on.rectangle")
+                            Label("Photos & Videos", systemImage: "photo.on.rectangle")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(FlickStyle.violet)
 
                         Button { showFiles = true } label: {
-                            Label("Choose File", systemImage: "doc")
+                            Label("Browse Files", systemImage: "doc")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.bordered)
                     }
 
-                    Text("SELECTED ITEM")
+                    Text("READY TO SEND")
                         .font(.caption.bold())
                         .foregroundStyle(.white.opacity(0.6))
 
@@ -93,11 +94,11 @@ struct PortalSendView: View {
                                     .font(.system(size: 58))
                                     .foregroundStyle(FlickStyle.pink)
                             }
-                            Text(stagedURL == nil ? "Choose something to throw" : stagedName)
+                            Text(stagedURL == nil ? "Pick a photo or file above" : stagedName)
                                 .font(.headline)
                                 .multilineTextAlignment(.center)
                                 .lineLimit(3)
-                            Label("Swipe this card off the LEFT edge", systemImage: "arrow.left")
+                            Label("Drag LEFT to send to your Mac", systemImage: "arrow.left")
                                 .font(.subheadline.bold())
                                 .foregroundStyle(FlickStyle.pink)
                         }
@@ -149,25 +150,63 @@ struct PortalSendView: View {
                     .accessibilityLabel("Selected item. Drag left and release to send to Mac.")
 
                     Button(action: sendSelected) {
-                        Label("Send selected item to Mac", systemImage: "arrow.up.right")
+                        Label("Send to Mac", systemImage: "arrow.up.right")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(FlickStyle.pink)
                     .disabled(stagedURL == nil || isSending || nearby.connectedPeers.isEmpty)
 
-                    VStack(alignment: .leading, spacing: 9) {
-                        Text("ARRIVAL ANIMATION").font(.caption.bold()).foregroundStyle(.white.opacity(0.65))
-                        Picker("Arrival", selection: $transition) {
-                            ForEach(PortalTransition.allCases) { style in
-                                Text(style.title).tag(style)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Label("Choose your arrival effect", systemImage: "sparkles")
+                                .font(.headline)
+                            Spacer()
+                            Text("SAVED").font(.caption.bold()).foregroundStyle(FlickStyle.pink)
+                        }
+                        Text("Controls how the right-edge portal opens on your Mac. Your choice stays saved.")
+                            .font(.subheadline).foregroundStyle(.white.opacity(0.67))
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                            ForEach(PortalTransition.allCases) { effect in
+                                Button {
+                                    savedEffect = effect.rawValue
+                                    UISelectionFeedbackGenerator().selectionChanged()
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 6) {
+                                        HStack {
+                                            Image(systemName: effect.symbol).font(.title3)
+                                            Spacer()
+                                            if transition == effect {
+                                                Image(systemName: "checkmark.circle.fill")
+                                            }
+                                        }
+                                        Text(effect.title).font(.headline)
+                                        Text(effect.explanation)
+                                            .font(.caption)
+                                            .lineLimit(2)
+                                            .multilineTextAlignment(.leading)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .opacity(0.72)
+                                    }
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity, minHeight: 104, alignment: .leading)
+                                    .padding(12)
+                                    .background(
+                                        transition == effect ? FlickStyle.violet.opacity(0.57) : Color.white.opacity(0.08),
+                                        in: RoundedRectangle(cornerRadius: 16)
+                                    )
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 16)
+                                            .strokeBorder(transition == effect ? FlickStyle.pink : Color.white.opacity(0.12), lineWidth: 1.5)
+                                    }
+                                }
+                                .buttonStyle(.plain)
                             }
                         }
-                        .pickerStyle(.segmented)
                     }
 
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("Send a link", systemImage: "link").font(.headline)
+                        Label("Send a website link", systemImage: "link").font(.headline)
                         TextField("https://example.com", text: $linkText)
                             .textInputAutocapitalization(.never)
                             .keyboardType(.URL)
@@ -175,10 +214,10 @@ struct PortalSendView: View {
                             .padding(12)
                             .background(.white.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
                         HStack {
-                            Button("Send Link") { sendLink() }
+                            Button("Send link") { sendLink() }
                                 .buttonStyle(.borderedProminent)
                                 .tint(FlickStyle.violet)
-                            Button("Send Clipboard") { sendClipboard() }
+                            Button("Send copied text") { sendClipboard() }
                                 .buttonStyle(.bordered)
                         }
                         .disabled(nearby.connectedPeers.isEmpty)
@@ -217,15 +256,15 @@ struct PortalSendView: View {
                                     }
                                 })
                         }
-                        Text("Clipboard text is only read when you tap Send Clipboard. Links are shown on your Mac, not opened automatically.")
+                        Text("Copied text is shared only when you choose to send it. Website links wait for you to open them on Mac.")
                             .font(.caption).foregroundStyle(.white.opacity(0.65))
                     }
                     .padding(18)
                     .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 19))
 
                     if isSending { ProgressView("Sending securely…").tint(FlickStyle.pink) }
-                    StatusCard(symbol: "info.circle", headline: "Portal status", subheadline: status)
-                    Text("Your selected item flies off the LEFT side of iPhone, then emerges from a glowing portal on the RIGHT edge of your Mac. Files save to Downloads/FlickTunes. Keep FlickTunes open on iPhone while sending.")
+                    StatusCard(symbol: "info.circle", headline: "Transfer status", subheadline: status)
+                    Text("RIFT opens on the right edge of your Mac after your item arrives. Files save to Downloads/RIFT. Keep RIFT open on iPhone while sending.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                 }
                 .padding(22)
@@ -254,7 +293,7 @@ struct PortalSendView: View {
             stagedURL = temp
             stagedName = url.lastPathComponent
             stagedImage = UTType(filenameExtension: url.pathExtension)?.conforms(to: .image) ?? false
-            status = "Ready. Swipe the card left or tap Send."
+            status = "Ready. Drag left or tap Send to Mac."
         } catch {
             status = "Couldn't import file: \(error.localizedDescription)"
         }
@@ -286,7 +325,7 @@ struct PortalSendView: View {
             stagedURL = dest
             stagedName = name
             stagedImage = true
-            status = "Photo ready. Swipe the card left."
+            status = "Photo ready — drag left to send."
         } catch {
             status = "Couldn't import media: \(error.localizedDescription)"
         }
