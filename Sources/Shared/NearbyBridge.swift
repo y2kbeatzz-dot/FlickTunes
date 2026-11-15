@@ -20,6 +20,8 @@ final class NearbyBridge: NSObject, ObservableObject {
 
     var onHandoff: ((TransferPacket, MCPeerID) -> Void)?
     var onAcknowledgement: ((Bool, String) -> Void)?
+    /// Called on the main queue after a previously approved or manually selected Mac connects.
+    var onConnected: ((MCPeerID) -> Void)?
 
     private enum Mode { case idle, advertising, browsing }
     private var mode: Mode = .idle
@@ -267,6 +269,8 @@ final class NearbyBridge: NSObject, ObservableObject {
                 approvedPeer = nil
                 Self.savePeer(peer, key: Self.trustedKey)
             }
+            // iPhone may have one pending flick while a trusted Mac reconnects.
+            onConnected?(peer)
         case .connecting:
             if connectedPeers.isEmpty { status = "Establishing encrypted connection with \(peer.displayName)…" }
         case .notConnected:
