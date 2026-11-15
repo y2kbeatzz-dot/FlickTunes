@@ -9,27 +9,27 @@ swift scripts/generate_icons.swift
 xcodegen generate
 
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesMac -configuration Release -sdk macosx -derivedDataPath "$PWD/.build/mac" CODE_SIGNING_ALLOWED=NO build
-MAC_APP="$PWD/.build/mac/Build/Products/Release/FlickTunesMac.app"
+MAC_APP="$PWD/.build/mac/Build/Products/Release/RIFT.app"
 test -d "$MAC_APP"
 rm -rf .build/dmg
 mkdir -p .build/dmg
-cp -R "$MAC_APP" .build/dmg/FlickTunes.app
+cp -R "$MAC_APP" .build/dmg/RIFT.app
 # Apple Silicon requires a valid code signature for execution. An ad-hoc
 # signature makes our local prototype internally consistent, but DOES NOT
 # identify the developer or satisfy Gatekeeper notarization.
 # Never strip download quarantine from a release automatically.
-/usr/bin/codesign --force --sign - --timestamp=none .build/dmg/FlickTunes.app
-/usr/bin/codesign --verify --deep --strict --verbose=2 .build/dmg/FlickTunes.app
+/usr/bin/codesign --force --sign - --timestamp=none .build/dmg/RIFT.app
+/usr/bin/codesign --verify --deep --strict --verbose=2 .build/dmg/RIFT.app
 ln -s /Applications .build/dmg/Applications
-hdiutil create -volname FlickTunes -srcfolder .build/dmg -ov -format UDZO "${PWD}/dist/FlickTunes-macOS.dmg"
+hdiutil create -volname RIFT -srcfolder .build/dmg -ov -format UDZO "${PWD}/dist/RIFT-macOS.dmg"
 
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesiOS -configuration Release -sdk iphoneos -derivedDataPath "$PWD/.build/ios" CODE_SIGNING_ALLOWED=NO build
 
 # The .app directory, CFBundleExecutable and actual Mach-O binary MUST agree.
-# Renaming FlickTunesiOS.app to FlickTunes.app without also renaming its
+# Renaming RIFT.app to RIFT.app without also renaming its
 # executable was the cause of Sideloadly's "Failed to chmod .../FlickTunes".
-IOS_APP="$PWD/.build/ios/Build/Products/Release-iphoneos/FlickTunes.app"
-IOS_BINARY="FlickTunes"
+IOS_APP="$PWD/.build/ios/Build/Products/Release-iphoneos/RIFT.app"
+IOS_BINARY="RIFT"
 test -d "$IOS_APP" || { echo "ERROR: iPhone .app not produced at $IOS_APP"; exit 1; }
 test -x "$IOS_APP/$IOS_BINARY" || { echo "ERROR: Missing executable $IOS_APP/$IOS_BINARY"; exit 1; }
 BUNDLE_EXE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$IOS_APP/Info.plist")
@@ -40,20 +40,20 @@ file "$IOS_APP/$IOS_BINARY" | grep -q 'Mach-O' || { echo "ERROR: iOS executable 
 /usr/bin/lipo -archs "$IOS_APP/$IOS_BINARY" | grep -qw arm64 || { echo "ERROR: iPhone executable missing arm64"; exit 1; }
 
 rm -rf .build/ipa .build/ipa-verify
-rm -f dist/FlickTunes-iOS-UNSIGNED.ipa
+rm -f dist/RIFT-iOS-UNSIGNED.ipa
 mkdir -p .build/ipa/Payload
-cp -R "$IOS_APP" .build/ipa/Payload/FlickTunes.app
-(cd .build/ipa && /usr/bin/zip -q -X -r "$OLDPWD/dist/FlickTunes-iOS-UNSIGNED.ipa" Payload)
+cp -R "$IOS_APP" .build/ipa/Payload/RIFT.app
+(cd .build/ipa && /usr/bin/zip -q -X -r "$OLDPWD/dist/RIFT-iOS-UNSIGNED.ipa" Payload)
 
 # Fail the CI build instead of publishing an IPA that Sideloadly can't sign.
-unzip -tqq dist/FlickTunes-iOS-UNSIGNED.ipa
+unzip -tqq dist/RIFT-iOS-UNSIGNED.ipa
 mkdir -p .build/ipa-verify
-unzip -qq dist/FlickTunes-iOS-UNSIGNED.ipa -d .build/ipa-verify
-PACKAGED_APP="$PWD/.build/ipa-verify/Payload/FlickTunes.app"
-test -x "$PACKAGED_APP/$IOS_BINARY" || { echo "ERROR: IPA lacks executable Payload/FlickTunes.app/FlickTunes"; exit 1; }
+unzip -qq dist/RIFT-iOS-UNSIGNED.ipa -d .build/ipa-verify
+PACKAGED_APP="$PWD/.build/ipa-verify/Payload/RIFT.app"
+test -x "$PACKAGED_APP/$IOS_BINARY" || { echo "ERROR: IPA lacks executable Payload/RIFT.app/FlickTunes"; exit 1; }
 PACKAGED_EXE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$PACKAGED_APP/Info.plist")
 test "$PACKAGED_EXE" = "$IOS_BINARY" || { echo "ERROR: IPA metadata points to $PACKAGED_EXE"; exit 1; }
-echo "IPA VERIFIED: Payload/FlickTunes.app/FlickTunes (arm64), CFBundleExecutable=$PACKAGED_EXE, CFBundleIdentifier=$BUNDLE_ID"
+echo "IPA VERIFIED: Payload/RIFT.app/FlickTunes (arm64), CFBundleExecutable=$PACKAGED_EXE, CFBundleIdentifier=$BUNDLE_ID"
 ls -lh dist/*
 echo 'IMPORTANT: The iOS IPA is unsigned and will not install without signing.'
 echo 'The Mac app is ad-hoc signed but NOT Apple notarized. Gatekeeper will still block it until approved by the user.'
