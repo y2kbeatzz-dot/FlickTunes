@@ -2,6 +2,7 @@ import AppKit
 import Combine
 import MultipeerConnectivity
 import SwiftUI
+import UniformTypeIdentifiers
 
 @main
 struct FlickTunesMacApp: App {
@@ -24,6 +25,11 @@ final class MacReceiverModel: ObservableObject {
     let nearby = NearbyBridge()
     @Published private(set) var result = "Waiting for a song from your iPhone."
     @Published private(set) var working = false
+    @Published private(set) var portalStatus = "No Portal items received yet."
+    @Published private(set) var lastPortalFile: PortalReceivedFile?
+    @Published private(set) var lastPortalLink: URL?
+    @Published private(set) var lastPortalText: String?
+    private let portalPresenter = PortalArrivalPresenter()
     private var updates: AnyCancellable?
 
     init() {
@@ -32,6 +38,33 @@ final class MacReceiverModel: ObservableObject {
         }
         nearby.onHandoff = { [weak self] packet, peer in
             self?.receive(packet, from: peer)
+        }
+        nearby.onPortalFile = { [weak self] file in
+            guard let self else { return }
+            self.lastPortalFile = file
+            self.portalStatus = "Saved \(file.name) in Downloads/FlickTunes."
+            let fileType = UTType(filenameExtension: file.url.pathExtension)
+            let kind: ArrivalKind = fileType?.conforms(to: .image) == true ? .photo
+                : (fileType?.conforms(to: .movie) == true ? .video : .file)
+            self.portalPresenter.present(name: file.name, kind: kind, transition: file.transition, previewURL: kind == .photo ? file.url : nil)
+        }
+        nearby.onPortalLink = { [weak self] url, transition in
+            guard let self else { return }
+            self.lastPortalLink = url
+            self.portalStatus = "A link arrived. Click Open Link to visit it."
+            self.portalPresenter.present(name: url.absoluteString, kind: .link, transition: transition)
+        }
+        nearby.onPortalText = { [weak self] text, transition in
+            guard let self else { return }
+            self.lastPortalText = text
+            // Only explicit clipboard sends from the iPhone are handled here.
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(text, forType: .string)
+            self.portalStatus = "Clipboard text copied to this Mac."
+            self.portalPresenter.present(name: "Ready to paste", kind: .clipboard, transition: transition)
+        }
+        nearby.onPortalError = { [weak self] details in
+            self?.portalStatus = details
         }
     }
 
@@ -137,6 +170,56 @@ struct MacHomeView: View {
                         headline: receiver.working ? "Opening Apple Music…" : "Playback",
                         subheadline: receiver.result
                     )
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "square.on.square.dashed")
+                                .font(.title2).foregroundStyle(FlickStyle.pink)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("Portal • Drop zone").font(.headline)
+                                Text("Drag photos, files or links off the left side of the iPhone to land here.")
+                                    .font(.subheadline).foregroundStyle(.white.opacity(0.75))
+                            }
+                        }
+                        Text(receiver.portalStatus)
+                            .font(.footnote).foregroundStyle(.white.opacity(0.8))
+                        if let file = receiver.lastPortalFile {
+                            HStack(spacing: 10) {
+                                Image(systemName: "doc.fill")
+                                    .foregroundStyle(FlickStyle.pink)
+                                Text(file.name).lineLimit(1)
+                                Spacer()
+                                Button("Show in Finder") {
+                                    NSWorkspace.shared.activateFileViewerSelecting([file.url])
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                        if let link = receiver.lastPortalLink {
+                            HStack(spacing: 8) {
+                                Image(systemName: "link").foregroundStyle(FlickStyle.pink)
+                                Text(link.absoluteString).lineLimit(1)
+                                Spacer()
+                                Link("Open Link", destination: link).buttonStyle(.bordered)
+                            }
+                        }
+                        if receiver.lastPortalText != nil {
+                            Label("Latest clipboard transfer is ready to paste.", systemImage: "doc.on.clipboard")
+                                .font(.subheadline)
+                        }
+                        HStack {
+                            Image(systemName: "arrow.down.doc")
+                            Text("Files save to Downloads/FlickTunes. Arrival animations appear near the Mac pointer.")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                    }
+                    .padding(18)
+                    .background(
+                        LinearGradient(colors: [FlickStyle.violet.opacity(0.27), FlickStyle.pink.opacity(0.10)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 19)
+                    )
+
                     if let packet = receiver.nearby.lastReceived {
                         HStack(spacing: 12) {
                             Image(systemName: "waveform")
@@ -168,9 +251,11 @@ struct MacHomeView: View {
                     Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open FlickTunes on it. Connections may pause when iOS backgrounds the app.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                     HStack {
-                        Text("Created by life999")
+                        Text("Created by Ksyusha · life999")
                         Spacer()
-                        Button("About & creator") { showingAbout = true }
+                        Link("Creator page", destination: URL(string: "https://guns.lol/life999")!)
+                            .buttonStyle(.borderless)
+                        Button("About") { showingAbout = true }
                     }
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.7))

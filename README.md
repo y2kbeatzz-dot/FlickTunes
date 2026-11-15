@@ -37,6 +37,34 @@ To check app signature validity, run `codesign --verify --deep --strict --verbos
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
 
+## What's new in v0.4.0 — Portal + motion gesture
+
+### Portal: drag from iPhone toward Mac
+
+- Open **Portal • Photos, Files & Links** from FlickTunes on iPhone.
+- Select a photo or video from the Photos picker, or any document/video from Files.
+- The selection becomes a draggable card. **Hold and drag it LEFT**: the card follows your finger, tilts, and flies off-screen when released far enough. A Send button is available for accessibility.
+- On Mac, the received file is saved (without executing it) to **~/Downloads/FlickTunes**. A floating arrival card slides in from the left edge to a position near the pointer; photos can display a real thumbnail. Use **Show in Finder** in the app to locate the item.
+- Select an original arrival effect: **Glide**, **Bloom**, or **Fade**. These are transitions within FlickTunes, not Canopy's animations or assets.
+- Links can also be dragged off the left edge. They appear in the Mac receiver with an explicit **Open Link** button; they never auto-launch. Clipboard text is only sent when you explicitly tap **Send Clipboard**.
+- Transfer uses the existing nearby, encrypted MultipeerConnectivity session. No cloud relay is used. Keep iPhone FlickTunes foregrounded while sending large files; a full-size movie may need to copy locally before sending.
+
+### Music flick troubleshooting
+
+- The iPhone motion detector no longer depends on the direction the phone is held. It detects short, deliberate movements, with sensitivity adjustment.
+- New **Test motion without sending** option, live sensor indicator, gesture count, and haptic feedback help distinguish motion detection from a playback/connection problem.
+- Portal's screen swipe is separate from the physical Music flick; motion music handoff pauses while Portal is open.
+
+### About / creator
+
+**Created by Ksyusha (life999)**. Both apps link to [guns.lol/life999](https://guns.lol/life999) and include the in-app setup guide.
+
+**What this version does not claim:** There is no physical tracking of an object between displays, system-wide cross-device dragging, Mac-to-iPhone reverse file transfers, or system-level Apple Handoff. The coordinated animations simulate the throw-and-land experience with our own design. This is an independently written preview; do not assume every Canopy capability is present.
+
+### Test
+
+The workflow now runs portable smoke tests for gesture signals and URL handling and builds both apps on a macOS runner. iOS still requires your own signing before installation, and macOS builds are ad-hoc signed, **not notarized**. Real hardware tests are necessary to validate touch interaction, iPhone-to-Mac transfer, appearance and performance.
+
 ## What's new in v0.3.1
 
 - **Flick-to-send by default:** Gently flick your iPhone while FlickTunes is open to send the current Apple Music track. Your on/off choice is saved between launches. The regular send button remains available.
@@ -120,4 +148,4 @@ scripts/              Generate app icon + build IPA and DMG
 project.yml            XcodeGen source of truth
 ```
 
-Version 0.3.1 — prototype under development. Created by [life999](https://guns.lol/life999).
+Version 0.4.0 — prototype under development. Created by [life999](https://guns.lol/life999).
