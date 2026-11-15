@@ -33,7 +33,7 @@ struct PhoneHomeView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Image(systemName: "waveform.path").font(.largeTitle).foregroundStyle(FlickStyle.pink)
                         Text("FlickTunes").font(.system(size: 38, weight: .bold, design: .rounded))
-                        Text("Flick your music to your Mac.").foregroundStyle(.white.opacity(0.72))
+                        Text("Flick music, photos, files and links to your Mac.").foregroundStyle(.white.opacity(0.72))
                     }.padding(.top, 24)
                     HStack(spacing: 12) {
                         Button { showingHelp = true } label: {
@@ -278,6 +278,12 @@ struct PhoneHomeView: View {
         }
         .onChange(of: gestureSensitivity) { _, newValue in
             flick.sensitivity = newValue
+        }
+        .onChange(of: showingPortal) { _, isPortalOpen in
+            // Dragging an item through Portal must not accidentally trigger
+            // the separate motion gesture for Apple Music handoff.
+            if isPortalOpen { flick.stop() }
+            else if motionFlickEnabled && scenePhase == .active { flick.start() }
         }
     }
 
