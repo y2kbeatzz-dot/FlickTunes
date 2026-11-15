@@ -14,12 +14,14 @@ struct PhoneHomeView: View {
     @StateObject private var flick = FlickGesture()
     // Store the user's preferences; sensor collection only runs in the foreground.
     @AppStorage("flicktunes.motionFlickEnabled.v1") private var motionFlickEnabled = true
+    @AppStorage("flicktunes.gestureSensitivity.v1") private var gestureSensitivity = 0.4
     @AppStorage("flicktunes.pauseAfterHandoff.v1") private var pauseAfterHandoff = true
     @State private var toast: String?
     @State private var queuedFlick: TransferPacket?
     @State private var queuedPeer: MCPeerID?
     @State private var showingHelp = false
     @State private var showingAbout = false
+    @State private var showingPortal = false
     @State private var confirmingForget = false
     @Environment(\.scenePhase) private var scenePhase
 
@@ -42,6 +44,30 @@ struct PhoneHomeView: View {
                         }
                     }
                     .buttonStyle(.bordered)
+
+                    Button { showingPortal = true } label: {
+                        HStack(spacing: 14) {
+                            Image(systemName: "square.on.square.dashed")
+                                .font(.title2)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Portal • Photos, Files & Links")
+                                    .font(.headline)
+                                Text("Drag an item off your iPhone and let it land on your Mac")
+                                    .font(.subheadline).opacity(0.85)
+                            }
+                            Spacer()
+                            Image(systemName: "arrow.right")
+                        }
+                        .foregroundStyle(.white)
+                        .padding(18)
+                        .background(
+                            LinearGradient(colors: [FlickStyle.violet.opacity(0.78), FlickStyle.pink.opacity(0.53)],
+                                           startPoint: .leading, endPoint: .trailing),
+                            in: RoundedRectangle(cornerRadius: 20)
+                        )
+                    }
+                    .buttonStyle(.plain)
+
                     StatusCard(
                         symbol: "sparkles",
                         headline: "Quick start",
@@ -119,16 +145,53 @@ struct PhoneHomeView: View {
 
                     VStack(alignment: .leading, spacing: 10) {
                         Toggle(isOn: $motionFlickEnabled) {
-                            Label("Flick to send (no tapping)", systemImage: "iphone.gen3.radiowaves.left.and.right")
+                            Label("Flick iPhone to hand off Apple Music", systemImage: "hand.draw")
                                 .font(.headline)
                         }
                         .tint(FlickStyle.pink)
-                        Text("Your choice is remembered. A quick, gentle flick sends the current Apple Music track to your paired Mac when FlickTunes is open.")
-                            .font(.subheadline).foregroundStyle(.white.opacity(0.7))
+                        Text("A gentle wrist flick in any direction triggers a song handoff when this app is open. Your preference is saved.")
+                            .font(.subheadline).foregroundStyle(.white.opacity(0.74))
+
+                        HStack {
+                            Text("Sensitivity")
+                            Spacer()
+                            Text(gestureSensitivity < 0.3 ? "Easy" :
+                                 gestureSensitivity < 0.7 ? "Normal" : "Firm")
+                                .foregroundStyle(FlickStyle.pink)
+                        }
+                        .font(.subheadline.weight(.medium))
+                        Slider(value: $gestureSensitivity, in: 0...1, step: 0.05)
+                            .tint(FlickStyle.pink)
+                            .disabled(!motionFlickEnabled)
+
+                        Toggle("Test motion without sending a song", isOn: $flick.testMode)
+                            .font(.subheadline)
+                            .tint(FlickStyle.violet)
+                            .disabled(!motionFlickEnabled)
+
+                        HStack {
+                            Text(flick.receivingMotion ? "Sensor active" : "Sensor waiting")
+                            Spacer()
+                            Text("Flicks: \(flick.detectionCount)")
+                        }
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.72))
+
+                        GeometryReader { geometry in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(.white.opacity(0.15))
+                                Capsule().fill(
+                                    LinearGradient(colors: [FlickStyle.violet, FlickStyle.pink],
+                                                   startPoint: .leading, endPoint: .trailing)
+                                )
+                                .frame(width: max(0, geometry.size.width * flick.signalLevel))
+                            }
+                        }
+                        .frame(height: 7)
                         Text(motionFlickEnabled ? flick.message : "Flick gesture off — use the send button instead.")
                             .font(.footnote).foregroundStyle(FlickStyle.pink.opacity(0.88))
                         if !flick.isSupported {
-                            Text("Motion sensing isn't available on this device.")
+                            Text("Motion sensing isn't available on this device. Test on a physical iPhone.")
                                 .font(.footnote).foregroundStyle(.orange)
                         }
                     }
@@ -149,6 +212,10 @@ struct PhoneHomeView: View {
                 }
                 .padding(22)
             }
+        }
+        .fullScreenCover(isPresented: $showingPortal) {
+            PortalSendView(nearby: nearby)
+                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $showingHelp) { FlickTunesHelpView(platform: .iphone) }
         .sheet(isPresented: $showingAbout) { FlickTunesAboutView() }
@@ -184,6 +251,7 @@ struct PhoneHomeView: View {
                     music.pauseAfterSuccessfulTransfer()
                 }
             }
+            flick.sensitivity = gestureSensitivity
             await music.requestAccess()
             if motionFlickEnabled && scenePhase == .active { flick.start() }
         }
@@ -205,6 +273,9 @@ struct PhoneHomeView: View {
         .onChange(of: motionFlickEnabled) { _, isOn in
             if isOn && scenePhase == .active { flick.start() }
             else { flick.stop() }
+        }
+        .onChange(of: gestureSensitivity) { _, newValue in
+            flick.sensitivity = newValue
         }
     }
 
