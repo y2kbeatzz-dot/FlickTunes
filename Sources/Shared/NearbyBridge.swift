@@ -20,8 +20,8 @@ final class NearbyBridge: NSObject, ObservableObject {
 
     var onHandoff: ((TransferPacket, MCPeerID) -> Void)?
     var onAcknowledgement: ((Bool, String) -> Void)?
-    var onPortalLink: ((URL) -> Void)?
-    var onPortalText: ((String) -> Void)?
+    var onPortalLink: ((URL, PortalTransition) -> Void)?
+    var onPortalText: ((String, PortalTransition) -> Void)?
     var onPortalFile: ((PortalReceivedFile) -> Void)?
     var onPortalError: ((String) -> Void)?
     /// Called on the main queue after a previously approved or manually selected Mac connects.
@@ -389,10 +389,10 @@ extension NearbyBridge: MCSessionDelegate {
                 self.onAcknowledgement?(message.succeeded ?? false, message.details ?? "No details")
             case .portalLink:
                 guard let text = message.details, let url = PortalURL.normalized(text) else { return }
-                self.onPortalLink?(url)
+                self.onPortalLink?(url, message.transition ?? .glide)
             case .portalText:
                 guard let text = message.details, text.count <= 100_000 else { return }
-                self.onPortalText?(text)
+                self.onPortalText?(text, message.transition ?? .glide)
             }
         }
     }
@@ -417,10 +417,10 @@ extension NearbyBridge: MCSessionDelegate {
             }
             return
         }
-        let parts = resourceName.split(separator: "--", maxSplits: 3, omittingEmptySubsequences: false)
-        guard parts.count == 4, parts[0] == "ft",
-              let style = PortalTransition(rawValue: String(parts[1])) else { return }
-        let rawName = String(parts[3])
+        let parts = resourceName.components(separatedBy: "--")
+        guard parts.count >= 4, parts[0] == "ft",
+              let style = PortalTransition(rawValue: parts[1]) else { return }
+        let rawName = parts.dropFirst(3).joined(separator: "--")
         let cleaned = rawName
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "\\", with: "_")
@@ -433,9 +433,9 @@ extension NearbyBridge: MCSessionDelegate {
             let downloads = fm.urls(for: .downloadsDirectory, in: .userDomainMask).first!
             let folder = downloads.appendingPathComponent("FlickTunes", isDirectory: true)
             try fm.createDirectory(at: folder, withIntermediateDirectories: true)
-            let source = URL(fileURLWithPath: name)
-            let ext = source.pathExtension
-            let stem = source.deletingPathExtension().lastPathComponent
+            let nameURL = URL(fileURLWithPath: name)
+            let ext = nameURL.pathExtension
+            let stem = nameURL.deletingPathExtension().lastPathComponent
             var destination = folder.appendingPathComponent(name)
             var suffix = 2
             while fm.fileExists(atPath: destination.path) {
