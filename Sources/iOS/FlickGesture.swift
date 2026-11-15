@@ -2,63 +2,94 @@ import CoreMotion
 import Foundation
 import UIKit
 
-/// Detects a short, deliberate hand movement, not a screen tap.
-/// iOS only permits this while FlickTunes is active in the foreground.
+/// Foreground-only motion gesture: gently flick the phone in any direction.
+/// The raw sensor readings are processed entirely on-device.
 final class FlickGesture: ObservableObject {
     @Published private(set) var enabled = false
+    @Published private(set) var receivingMotion = false
+    @Published private(set) var signalLevel = 0.0
+    @Published private(set) var detectionCount = 0
     @Published private(set) var lastFlickAt: Date?
-    @Published private(set) var message = "Flick gesture is ready."
+    @Published private(set) var message = "Motion gesture is ready."
+    @Published var testMode = false
 
     private let motion = CMMotionManager()
-    private var lastTrigger = Date.distantPast
-    private var consecutiveSamples = 0
-    var onFlick: (() -> Void)?
+    private var detector = FlickSignalDetector()
+    private var lastMeterUpdate = -Double.infinity
 
+    /// 0 = Easy, 0.4 = Normal, 1 = Firm. Saved by the SwiftUI view.
+    var sensitivity = 0.4 {
+        didSet {
+            sensitivity = max(0, min(1, sensitivity))
+            detector.sensitivity = sensitivity
+        }
+    }
+
+    var onFlick: (() -> Void)?
     var isSupported: Bool { motion.isDeviceMotionAvailable }
 
     func start() {
         guard !enabled else { return }
         guard isSupported else {
-            message = "Motion detection is unavailable on this device."
+            message = "This device doesn't provide motion data. Test on a physical iPhone, not Simulator."
             enabled = false
             return
         }
-        consecutiveSamples = 0
-        motion.deviceMotionUpdateInterval = 1.0 / 35.0
+        detector.reset()
+        detector.sensitivity = sensitivity
+        lastMeterUpdate = -Double.infinity
+        receivingMotion = false
+        signalLevel = 0
+        enabled = true
+        message = "Listening for a gentle flick…"
+
+        // Higher sample frequency catches short, normal wrist motions that
+        // the old 35Hz, >1.25g directional threshold often missed.
+        motion.deviceMotionUpdateInterval = 1.0 / 50.0
         motion.startDeviceMotionUpdates(to: .main) { [weak self] measurement, error in
-            guard let self else { return }
+            guard let self, self.enabled else { return }
             if let error {
                 self.message = "Motion sensor error: \(error.localizedDescription)"
                 return
             }
             guard let measurement else { return }
-            let a = measurement.userAcceleration
-            // A short forward/sideways impulse: two consecutive samples
-            // suppress one-frame sensor spikes. This is device-relative,
-            // not directional tracking toward a physical Mac.
-            let forwardImpulse = a.z < -1.15 || abs(a.x) > 1.6
-            let magnitude = sqrt(a.x * a.x + a.y * a.y + a.z * a.z)
-            self.consecutiveSamples = forwardImpulse && magnitude > 1.25
-                ? min(self.consecutiveSamples + 1, 3)
-                : 0
-            guard self.consecutiveSamples >= 2,
-                  Date().timeIntervalSince(self.lastTrigger) >= 3.5 else { return }
-            self.consecutiveSamples = 0
-            self.lastTrigger = Date()
-            self.lastFlickAt = self.lastTrigger
-            self.message = "Flick detected — sending to your Mac…"
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            self.onFlick?()
+            if !self.receivingMotion { self.receivingMotion = true }
+
+            let accel = measurement.userAcceleration
+            let rotation = measurement.rotationRate
+            let sample = FlickSample(
+                time: measurement.timestamp,
+                ax: accel.x, ay: accel.y, az: accel.z,
+                rx: rotation.x, ry: rotation.y, rz: rotation.z
+            )
+            let strength = sqrt(accel.x * accel.x + accel.y * accel.y + accel.z * accel.z)
+            if sample.time - self.lastMeterUpdate > 0.12 {
+                self.lastMeterUpdate = sample.time
+                self.signalLevel = min(1, strength / max(0.15, self.detector.threshold * 1.9))
+            }
+
+            guard self.detector.process(sample) else { return }
+            self.detectionCount += 1
+            self.lastFlickAt = Date()
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+            if self.testMode {
+                self.message = "Flick detected! Test passed (no song sent)."
+            } else {
+                self.message = "Flick detected! Sending to your Mac…"
+                self.onFlick?()
+            }
         }
-        enabled = true
-        message = "Motion flick is active. Gently flick your iPhone to send."
     }
 
     func stop() {
-        motion.stopDeviceMotionUpdates()
-        consecutiveSamples = 0
+        guard enabled || motion.isDeviceMotionActive else { return }
         enabled = false
-        message = "Motion paused until FlickTunes is active."
+        motion.stopDeviceMotionUpdates()
+        detector.reset()
+        signalLevel = 0
+        receivingMotion = false
+        message = "Motion paused. Reopen FlickTunes to resume."
     }
 
     deinit { motion.stopDeviceMotionUpdates() }
