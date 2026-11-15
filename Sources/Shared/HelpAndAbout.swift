@@ -26,7 +26,7 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 3, icon: "music.note", title: "Play a song in Apple Music", description: "Start your song in the Music app, then switch to FlickTunes and allow Media & Apple Music access."),
                 GuideStep(number: 4, icon: "link", title: "Pair once, then reconnect automatically", description: "Select your Mac the first time and approve it there. FlickTunes remembers both devices, so you don't need to select or type anything every launch."),
                 GuideStep(number: 5, icon: "arrow.up.right", title: "Flick to send music", description: "The Music screen has a motion sensor meter and test mode. Gently flick the iPhone while FlickTunes is open. Adjust sensitivity or use the send button."),
-                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Portal: drag photos, files and links", description: "Choose Portal from the Music screen. Pick a photo or file, or paste a link. Drag its card off the left edge and release. It flies off iPhone and a landing animation appears near the Mac pointer after transfer.")
+                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Portal: drag photos, files and links", description: "Choose Portal from the Music screen. Pick a photo or file, or paste a link. Drag its card off the left edge and release. It flies off iPhone; a glowing portal opens on the RIGHT edge of the Mac screen and the file emerges from it after transfer.")
             ]
         case .mac:
             return [
@@ -35,7 +35,7 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 3, icon: "checkmark.shield", title: "Approve your iPhone once", description: "Accept the first pairing request from your iPhone. Approved phones are remembered; there's no need to repeat setup every time."),
                 GuideStep(number: 4, icon: "music.note", title: "Make the song available", description: "The song must exist in your Mac Music library. Streaming-only tracks outside the library may not resume."),
                 GuideStep(number: 5, icon: "slider.horizontal.3", title: "Enable Music automation", description: "Allow FlickTunes to control Music when prompted. Find the permission under System Settings → Privacy & Security → Automation."),
-                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Catch Portal drops", description: "Open Portal on iPhone and swipe a selected item off the left edge. Mac saves photos and files to Downloads/FlickTunes and shows a temporary landing animation near your pointer. Links remain clickable in FlickTunes.")
+                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Catch Portal drops", description: "Open Portal on iPhone and swipe a selected item off the left edge. Mac saves photos and files to Downloads/FlickTunes, opens an animated portal on the RIGHT screen edge, and makes the item pop out. Use Preview Portal in the Mac app to try the effect without sending. Links remain clickable in FlickTunes.")
             ]
         }
     }
