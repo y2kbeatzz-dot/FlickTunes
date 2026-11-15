@@ -70,6 +70,16 @@ final class MacReceiverModel: ObservableObject {
 
     func start() { nearby.beginAdvertising() }
 
+    /// Preview the actual arrival effect without transferring a file.
+    /// Useful for adjusting expectations before pairing with an iPhone.
+    func previewPortal() {
+        portalPresenter.present(
+            name: "Your next photo will emerge here",
+            kind: .photo,
+            transition: .glide
+        )
+    }
+
     private func receive(_ packet: TransferPacket, from peer: MCPeerID) {
         guard !working else {
             _ = nearby.send(.acknowledgement(succeeded: false, details: "A handoff is already running."), to: peer)
@@ -106,6 +116,7 @@ private struct MacMenuView: View {
             openWindow(id: "main")
             NSApplication.shared.activate(ignoringOtherApps: true)
         }
+        Button("Preview Right-edge Portal") { receiver.previewPortal() }
         Button("Quit FlickTunes") { NSApplication.shared.terminate(nil) }
             .onAppear { receiver.start() }
     }
@@ -176,12 +187,21 @@ struct MacHomeView: View {
                                 .font(.title2).foregroundStyle(FlickStyle.pink)
                             VStack(alignment: .leading, spacing: 3) {
                                 Text("Portal • Drop zone").font(.headline)
-                                Text("Drag photos, files or links off the left side of the iPhone to land here.")
+                                Text("Flick an item from your iPhone: a glowing portal opens on the RIGHT edge of your Mac and the item emerges into the screen.")
                                     .font(.subheadline).foregroundStyle(.white.opacity(0.75))
                             }
                         }
-                        Text(receiver.portalStatus)
-                            .font(.footnote).foregroundStyle(.white.opacity(0.8))
+                        HStack(alignment: .center, spacing: 10) {
+                            Text(receiver.portalStatus)
+                                .font(.footnote).foregroundStyle(.white.opacity(0.8))
+                            Spacer(minLength: 6)
+                            Button {
+                                receiver.previewPortal()
+                            } label: {
+                                Label("Preview Portal", systemImage: "sparkles.rectangle.stack")
+                            }
+                            .buttonStyle(.bordered)
+                        }
                         if let file = receiver.lastPortalFile {
                             HStack(spacing: 10) {
                                 Image(systemName: "doc.fill")
@@ -208,7 +228,7 @@ struct MacHomeView: View {
                         }
                         HStack {
                             Image(systemName: "arrow.down.doc")
-                            Text("Files save to Downloads/FlickTunes. Arrival animations appear near the Mac pointer.")
+                            Text("Files save to Downloads/FlickTunes. Animated portal opens at the RIGHT screen edge (at the mouse's height).")
                         }
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.65))
