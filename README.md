@@ -4,6 +4,8 @@
 
 FlickTunes is a two-app **SwiftUI prototype**: an iPhone sender and a Mac receiver. It finds nearby devices with **MultipeerConnectivity**, lets you pair with approval on the Mac, and transfers the Apple Music track and playback time. The Mac receiver controls the actual **Music.app** with AppleScript.
 
+**Created by [life999](https://guns.lol/life999)** · [Source code](https://github.com/y2kbeatzz-dot/FlickTunes)
+
 ## 📦 Download the IPA and DMG
 
 1. Open **[FlickTunes Releases](../../releases)**. You can also check **[Build workflow runs](../../actions/workflows/build.yml)**.
@@ -34,6 +36,24 @@ The downloadable macOS app is a **development build**. The build is ad-hoc signe
 To check app signature validity, run `codesign --verify --deep --strict --verbose=2 "/Applications/FlickTunes.app"`. If the signature check fails or the release checksum does not match, delete that copy and download again instead of bypassing the warning.
 
 For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
+
+## What's new in v0.2.0
+
+- **Connection stability:** Persists the local peer identity, remembers an approved device, prevents duplicate invitations, and limits automatic reconnection to three spaced attempts. Manual **Rescan** and **Forget Pairing** are available on iPhone; **Forget Pairing** also appears on Mac.
+- **Mac menu-bar receiver:** Closing the main window no longer ends the receiver session. Use the FlickTunes menu-bar icon to reopen or quit the app.
+- **Setup guide:** Numbered steps and connection troubleshooting inside both apps.
+- **About FlickTunes:** Creator credit to **life999** and a direct link to [guns.lol/life999](https://guns.lol/life999).
+
+**iOS limitation:** Multipeer Connectivity may disconnect when the iPhone app enters the background. FlickTunes attempts to reconnect to an approved Mac when brought to the foreground, but cannot guarantee an always-on background connection. These changes still need testing on real paired devices.
+
+## Connection troubleshooting
+
+1. Start FlickTunes on Mac and leave it running (look for its menu-bar icon).
+2. Keep Wi-Fi and Bluetooth enabled and allow Local Network on iPhone.
+3. Start your song in the Music app **before** opening FlickTunes on iPhone.
+4. Tap your Mac, approve the pairing request, and wait for **Connected** before sending.
+5. If it gets stuck, tap **Rescan**. If necessary choose **Forget Pairing** on both devices, then pair again.
+6. For playback, grant Mac Automation permission and ensure the exact song is in your Mac Music library.
 
 ## 🛠 Build locally on your Mac
 
@@ -86,4 +106,4 @@ scripts/              Generate app icon + build IPA and DMG
 project.yml            XcodeGen source of truth
 ```
 
-Version 0.1.0 — prototype under development.
+Version 0.2.0 — prototype under development. Created by [life999](https://guns.lol/life999).
