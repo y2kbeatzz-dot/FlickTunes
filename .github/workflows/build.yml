@@ -28,6 +28,13 @@ jobs:
         run: |
           xcodebuild -version
           xcodegen --version
+      - name: Run flick gesture and Portal protocol smoke tests
+        run: |
+          swiftc -o /tmp/flicktunes-smoke-tests \
+            Sources/iOS/FlickSignalDetector.swift \
+            Sources/Shared/PortalTransfer.swift \
+            tests/main.swift
+          /tmp/flicktunes-smoke-tests
       - name: Build unsigned IPA and DMG
         run: bash scripts/build_artifacts.sh
       - name: Verify packages and create checksums
