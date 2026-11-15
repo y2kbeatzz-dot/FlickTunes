@@ -5,6 +5,8 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -49,6 +51,7 @@ jobs:
       # hit the GitHub Actions artifact storage quota. Release assets are
       # downloaded directly from Releases instead of Actions/Artifacts.
       - name: Publish downloadable IPA and DMG to GitHub Releases
+        if: github.event_name != 'pull_request'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
