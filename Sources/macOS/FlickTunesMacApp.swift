@@ -15,7 +15,7 @@ struct FlickTunesMacApp: App {
         }
         .defaultSize(width: 710, height: 690)
 
-        MenuBarExtra("FlickTunes", systemImage: "waveform.path") {
+        MenuBarExtra("RIFT", systemImage: "waveform.path") {
             MacMenuView(receiver: receiver)
         }
     }
@@ -42,7 +42,7 @@ final class MacReceiverModel: ObservableObject {
         nearby.onPortalFile = { [weak self] file in
             guard let self else { return }
             self.lastPortalFile = file
-            self.portalStatus = "Saved \(file.name) in Downloads/FlickTunes."
+            self.portalStatus = "Saved \(file.name) in Downloads/RIFT."
             let fileType = UTType(filenameExtension: file.url.pathExtension)
             let kind: ArrivalKind = fileType?.conforms(to: .image) == true ? .photo
                 : (fileType?.conforms(to: .movie) == true ? .video : .file)
@@ -70,7 +70,7 @@ final class MacReceiverModel: ObservableObject {
 
     func start() { nearby.beginAdvertising() }
 
-    /// Preview the actual arrival effect without transferring a file.
+    /// Test the actual arrival effect without transferring a file.
     /// Useful for adjusting expectations before pairing with an iPhone.
     func previewPortal() {
         portalPresenter.present(
@@ -112,12 +112,12 @@ private struct MacMenuView: View {
         }
         Text(receiver.nearby.status).font(.caption)
         Divider()
-        Button("Open FlickTunes") {
+        Button("Open RIFT") {
             openWindow(id: "main")
             NSApplication.shared.activate(ignoringOtherApps: true)
         }
-        Button("Preview Right-edge Portal") { receiver.previewPortal() }
-        Button("Quit FlickTunes") { NSApplication.shared.terminate(nil) }
+        Button("Test Right-edge Portal") { receiver.previewPortal() }
+        Button("Quit RIFT") { NSApplication.shared.terminate(nil) }
             .onAppear { receiver.start() }
     }
 }
@@ -138,7 +138,7 @@ struct MacHomeView: View {
                             .font(.system(size: 45))
                             .foregroundStyle(FlickStyle.pink)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("FlickTunes")
+                            Text("RIFT")
                                 .font(.system(size: 37, weight: .bold, design: .rounded))
                             Text("Your music, one flick away.")
                                 .foregroundStyle(.white.opacity(0.7))
@@ -186,8 +186,8 @@ struct MacHomeView: View {
                             Image(systemName: "square.on.square.dashed")
                                 .font(.title2).foregroundStyle(FlickStyle.pink)
                             VStack(alignment: .leading, spacing: 3) {
-                                Text("Portal • Drop zone").font(.headline)
-                                Text("Flick an item from your iPhone: a glowing portal opens on the RIGHT edge of your Mac and the item emerges into the screen.")
+                                Text("RIFT • Incoming").font(.headline)
+                                Text("Send an item from your iPhone: a glowing portal opens on the RIGHT edge of your Mac and the item emerges into the screen.")
                                     .font(.subheadline).foregroundStyle(.white.opacity(0.75))
                             }
                         }
@@ -198,7 +198,7 @@ struct MacHomeView: View {
                             Button {
                                 receiver.previewPortal()
                             } label: {
-                                Label("Preview Portal", systemImage: "sparkles.rectangle.stack")
+                                Label("Test Portal Effect", systemImage: "sparkles.rectangle.stack")
                             }
                             .buttonStyle(.bordered)
                         }
@@ -228,7 +228,7 @@ struct MacHomeView: View {
                         }
                         HStack {
                             Image(systemName: "arrow.down.doc")
-                            Text("Files save to Downloads/FlickTunes. Animated portal opens at the RIGHT screen edge (at the mouse's height).")
+                            Text("Files save to Downloads/RIFT. Animated portal opens at the RIGHT screen edge (at the mouse's height).")
                         }
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.65))
@@ -257,8 +257,8 @@ struct MacHomeView: View {
                         Label("Quick start", systemImage: "sparkles")
                             .font(.headline)
                             .foregroundStyle(FlickStyle.pink)
-                        Text("1. Open FlickTunes on iPhone.")
-                        Text("2. Pair once and approve your iPhone; FlickTunes remembers it.")
+                        Text("1. Open RIFT on iPhone.")
+                        Text("2. Pair once and approve your iPhone; RIFT remembers it.")
                         Text("3. Play a song on iPhone, then open FlickTunes and gently flick.")
                         Text("4. Allow access to control Apple's Music app if macOS asks.")
                     }
@@ -268,7 +268,7 @@ struct MacHomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
 
-                    Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open FlickTunes on it. Connections may pause when iOS backgrounds the app.")
+                    Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open RIFT on it. Connections may pause when iOS backgrounds the app.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                     HStack {
                         Text("Created by Ksyusha · life999")
