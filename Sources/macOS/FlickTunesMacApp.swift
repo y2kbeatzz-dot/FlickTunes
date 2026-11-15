@@ -8,15 +8,16 @@ import UniformTypeIdentifiers
 struct FlickTunesMacApp: App {
     // App-owned receiver continues running when the main window closes.
     @StateObject private var receiver = MacReceiverModel()
+    @StateObject private var loginSettings = RIFTLoginSettings()
 
     var body: some Scene {
         WindowGroup(id: "main") {
-            MacHomeView(receiver: receiver).preferredColorScheme(.dark)
+            MacHomeView(receiver: receiver, loginSettings: loginSettings).preferredColorScheme(.dark)
         }
         .defaultSize(width: 710, height: 690)
 
         MenuBarExtra("RIFT", systemImage: "waveform.path") {
-            MacMenuView(receiver: receiver)
+            MacMenuView(receiver: receiver, loginSettings: loginSettings)
         }
     }
 }
@@ -66,6 +67,8 @@ final class MacReceiverModel: ObservableObject {
         nearby.onPortalError = { [weak self] details in
             self?.portalStatus = details
         }
+        // Start discovery at app launch, regardless of the main window.
+        nearby.beginAdvertising()
     }
 
     func start() { nearby.beginAdvertising() }
@@ -101,6 +104,7 @@ final class MacReceiverModel: ObservableObject {
 
 private struct MacMenuView: View {
     @ObservedObject var receiver: MacReceiverModel
+    @ObservedObject var loginSettings: RIFTLoginSettings
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -117,13 +121,25 @@ private struct MacMenuView: View {
             NSApplication.shared.activate(ignoringOtherApps: true)
         }
         Button("Test Right-edge Portal") { receiver.previewPortal() }
+        Divider()
+        Toggle("Launch at Login", isOn: Binding(
+            get: { loginSettings.enabled },
+            set: { loginSettings.setEnabled($0) }
+        ))
+        if loginSettings.requiresApproval {
+            Text("Approve RIFT in System Settings → Login Items").font(.caption)
+        }
         Button("Quit RIFT") { NSApplication.shared.terminate(nil) }
-            .onAppear { receiver.start() }
+            .onAppear {
+                receiver.start()
+                loginSettings.refresh()
+            }
     }
 }
 
 struct MacHomeView: View {
     @ObservedObject var receiver: MacReceiverModel
+    @ObservedObject var loginSettings: RIFTLoginSettings
     @State private var showingHelp = false
     @State private var showingAbout = false
     @State private var confirmingForget = false
@@ -268,7 +284,9 @@ struct MacHomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
 
-                    Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open RIFT on it. Connections may pause when iOS backgrounds the app.")
+                    RIFTLaunchAtLoginControl(settings: loginSettings)
+
+                    Text("RIFT remains active in the Mac menu bar when you close this window. Select Quit RIFT from the menu bar to stop receiving files. Your approved iPhone reconnects when you reopen RIFT on it; iOS may pause nearby connections in the background.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                     HStack {
                         Text("Created by Ksyusha · life999")
