@@ -1,3 +1,4 @@
+import CoreTransferable
 import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
@@ -58,8 +59,8 @@ struct PortalSendView: View {
                     )
 
                     HStack(spacing: 12) {
-                        PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                            Label("Choose Photo", systemImage: "photo")
+                        PhotosPicker(selection: $selectedPhoto, matching: .any(of: [.images, .videos])) {
+                            Label("Photo / Video", systemImage: "photo.on.rectangle")
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
@@ -261,8 +262,19 @@ struct PortalSendView: View {
 
     @MainActor
     private func stagePhoto(_ item: PhotosPickerItem) async {
-        status = "Importing photo…"
+        status = "Importing from your photo library…"
         do {
+            if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
+                guard let movie = try await item.loadTransferable(type: PortalPickedMovie.self) else {
+                    status = "The selected video couldn't be read."
+                    return
+                }
+                stagedURL = movie.url
+                stagedName = movie.url.lastPathComponent
+                stagedImage = false
+                status = "Video ready. Drag the card left to send it in full quality."
+                return
+            }
             guard let data = try await item.loadTransferable(type: Data.self) else {
                 status = "The selected photo couldn't be read."
                 return
@@ -276,7 +288,7 @@ struct PortalSendView: View {
             stagedImage = true
             status = "Photo ready. Swipe the card left."
         } catch {
-            status = "Couldn't import photo: \(error.localizedDescription)"
+            status = "Couldn't import media: \(error.localizedDescription)"
         }
     }
 
@@ -354,6 +366,31 @@ struct PortalSendView: View {
             status = nearby.send(.portalLink(url, transition: transition)) ? "Sent clipboard link." : "Mac isn't connected."
         } else {
             status = nearby.send(.portalText(text, transition: transition)) ? "Sent clipboard text." : "Mac isn't connected."
+        }
+    }
+}
+
+
+/// PhotosPicker can expose very large movies only as file transfers.
+/// Copy the provider's temporary file immediately so it remains available
+/// for MCSession's streaming resource transfer.
+private struct PortalPickedMovie: Transferable {
+    let url: URL
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(contentType: .movie) { movie in
+            SentTransferredFile(movie.url)
+        } importing: { received in
+            let folder = FileManager.default.temporaryDirectory
+                .appendingPathComponent("FlickTunesPortal", isDirectory: true)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let originalExt = received.file.pathExtension
+            let suffix = originalExt.isEmpty ? "mov" : originalExt
+            let destination = folder.appendingPathComponent(
+                "Video-\(Int(Date().timeIntervalSince1970))-\(UUID().uuidString.prefix(6)).\(suffix)"
+            )
+            try FileManager.default.copyItem(at: received.file, to: destination)
+            return PortalPickedMovie(url: destination)
         }
     }
 }
