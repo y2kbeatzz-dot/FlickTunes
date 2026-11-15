@@ -13,7 +13,27 @@ FlickTunes is a two-app **SwiftUI prototype**: an iPhone sender and a Mac receiv
 
 Every push to `main` and every manual **Run workflow** generates its own development release. Version tags starting with `v` produce named version releases. This design avoids the exhausted **GitHub Actions artifact storage quota** because files are published as GitHub Release assets instead.
 
-**Important:** The iPhone IPA is **unsigned**. An unsigned IPA is a build artifact, *not an installable app*. You must code-sign it with an Apple Development certificate/team for your device, for example by building and running `FlickTunesiOS` from Xcode with your Apple ID. The Mac DMG is **not notarized**: macOS Gatekeeper may block opening it until you explicitly approve it under Privacy & Security. No Apple Developer certificate is included in this repository.
+**Important:** The iPhone IPA is **unsigned**. An unsigned IPA is a build artifact, *not an installable app*. You must code-sign it with an Apple Development certificate/team for your device, for example by building and running `FlickTunesiOS` from Xcode with your Apple ID. The Mac app is **ad-hoc signed but not notarized**: macOS Gatekeeper may block opening it until you explicitly approve it under Privacy & Security. No Apple Developer certificate is included in this repository.
+
+## 🍎 Mac: “FlickTunes is damaged and can’t be opened”
+
+The downloadable macOS app is a **development build**. The build is ad-hoc signed but **not Apple Developer ID signed or notarized**. A browser download is quarantined by macOS; Gatekeeper may display “damaged” even when the archive is intact. This message can also indicate a genuinely corrupted or modified app, so first confirm you got the expected release file.
+
+1. Download the DMG from this repository's **Releases** page, not from mirrors. You can compare the `shasum -a 256 ~/Downloads/FlickTunes-macOS.dmg` output against the matching entry in the release's `SHA256SUMS.txt`.
+2. Mount the DMG and copy **FlickTunes.app** into **Applications**.
+3. First try the Apple-supported path: open the app once, then open **System Settings → Privacy & Security → Open Anyway**, if macOS provides that option.
+4. If macOS still blocks your own verified development app, and you understand this bypasses Gatekeeper for *that app only*, run:
+
+   ```bash
+   xattr -dr com.apple.quarantine "/Applications/FlickTunes.app"
+   open "/Applications/FlickTunes.app"
+   ```
+
+   **Do not** disable Gatekeeper globally or run this command against an entire Applications folder. These steps are for a trusted build you downloaded and verified, **not** an unknown app.
+
+To check app signature validity, run `codesign --verify --deep --strict --verbose=2 "/Applications/FlickTunes.app"`. If the signature check fails or the release checksum does not match, delete that copy and download again instead of bypassing the warning.
+
+For normal, warning-free distribution, the project needs a **Developer ID Application** certificate and Apple notarization. Ad-hoc signing alone does not make a downloadable app trusted by Gatekeeper.
 
 ## 🛠 Build locally on your Mac
 
