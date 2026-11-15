@@ -140,7 +140,7 @@ struct MacHomeView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("RIFT")
                                 .font(.system(size: 37, weight: .bold, design: .rounded))
-                            Text("Your music, one flick away.")
+                            Text("Music and files, beautifully connected.")
                                 .foregroundStyle(.white.opacity(0.7))
                         }
                         Spacer()
@@ -259,7 +259,7 @@ struct MacHomeView: View {
                             .foregroundStyle(FlickStyle.pink)
                         Text("1. Open RIFT on iPhone.")
                         Text("2. Pair once and approve your iPhone; RIFT remembers it.")
-                        Text("3. Play a song on iPhone, then open FlickTunes and gently flick.")
+                        Text("3. Play a song on iPhone, then open RIFT and gently flick.")
                         Text("4. Allow access to control Apple's Music app if macOS asks.")
                     }
                     .font(.subheadline)
