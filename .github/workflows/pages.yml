@@ -1,0 +1,44 @@
+name: Publish RIFT website
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'website/**'
+      - '.github/workflows/pages.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: rift-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out launch site
+        uses: actions/checkout@v4
+      - name: Verify static site
+        run: |
+          set -euo pipefail
+          test -s website/index.html
+          test -s website/privacy.html
+          test -s website/support.html
+          grep -q 'RIFT' website/index.html
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -105,3 +105,23 @@ jobs:
             echo ""
             echo "**Note:** The iPhone IPA is unsigned and requires device signing."
           } >> "${GITHUB_STEP_SUMMARY}"
+      - name: Remove superseded development releases and their assets
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          current_tag="build-${GITHUB_RUN_ID}-attempt-${GITHUB_RUN_ATTEMPT}"
+          # Only touch our historical, automatically generated build releases.
+          # Keep the freshly published RIFT release and every named v* release.
+          echo "Preserving current release: ${current_tag}"
+          while IFS= read -r tag; do
+            if [[ "${tag}" =~ ^build-[0-9]+-attempt-[0-9]+$ ]] && [[ "${tag}" != "${current_tag}" ]]; then
+              echo "Removing superseded development release and assets: ${tag}"
+              if ! gh release delete "${tag}" --yes --cleanup-tag; then
+                echo "::warning::Could not remove old release ${tag}; it can be removed from Releases."
+              fi
+            fi
+          done < <(gh release list --limit 100 --json tagName --jq '.[].tagName')
+

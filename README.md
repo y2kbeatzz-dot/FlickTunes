@@ -2,14 +2,18 @@
 
 **Swipe it away. Watch it arrive.**
 
-RIFT is a pair of **SwiftUI apps**: an iPhone sender and a Mac receiver. It finds nearby devices with **MultipeerConnectivity**, lets you pair with approval on the Mac, and transfers the Apple Music track and playback time. The Mac receiver controls the actual **Music.app** with AppleScript.
+RIFT connects iPhone and Mac with a glowing right-edge Portal. Send photos, videos, files, links and explicit clipboard transfers over nearby encrypted MultipeerConnectivity; choose among eight arrival effects. The included Apple Music handoff sends the currently playing track and time to Music on Mac.
 
 **Created by Ksyusha ([life999](https://guns.lol/life999))** · [Source code](https://github.com/y2kbeatzz-dot/FlickTunes)
+
+## 🌐 RIFT website
+
+The new [RIFT launch website](website/index.html) includes downloads, features, eight animation effects, a privacy page, and support. To publish it with GitHub Pages and rename the repository to `RIFT`, follow **[LAUNCH.md](LAUNCH.md)**. GitHub Pages must be enabled in Settings → Pages → Source: GitHub Actions before the website is publicly live.
 
 ## 📦 Download the IPA and DMG
 
 1. Open **[RIFT Releases](../../releases)**. You can also check **[Build workflow runs](../../actions/workflows/build.yml)**.
-2. Open the newest **FlickTunes Development Build** prerelease (or a versioned release).
+2. Open the newest **RIFT Build** release (or a versioned release).
 3. Under **Assets**, download **RIFT-macOS.dmg** for your Mac or **RIFT-iOS-UNSIGNED.ipa** for iPhone. These are direct files, **not** GitHub Actions artifact ZIPs.
 4. Optional: use `SHA256SUMS.txt` to check the downloaded files.
 
@@ -23,13 +27,13 @@ Every push to `main` automatically builds **both** deliverables: `RIFT-iOS-UNSIG
 
 If your iPhone does **not** show up in Sideloadly *or Finder*, the build cannot fix USB device discovery. Reconnect the unlocked iPhone using a data-capable cable, check macOS accessory permission, and confirm Finder sees it before attempting the IPA install. You can still run the Mac DMG without an iPhone connected.
 
-## 📱 Sideloadly: install FlickTunes on iPhone
+## 📱 Sideloadly: install RIFT on iPhone
 
 **Important: choose your physical iPhone in Sideloadly's device dropdown, not your Apple Silicon Mac.** On Apple Silicon, Sideloadly can show the Mac itself as an installation destination. If its error says *Apple Silicon install failed*, check the target selection first. For the Mac use the separate `RIFT-macOS.dmg`, not the IPA.
 
 The iOS archive is unsigned by GitHub Actions so Sideloadly must sign it with your Apple ID before installing. Plug in the iPhone, unlock it, approve Trust if asked, select the iPhone as the target and load the latest `RIFT-iOS-UNSIGNED.ipa` from GitHub Releases. If the device is not shown, check the USB cable, Finder trust and developer mode.
 
-**Fixed in v0.4.1:** The previous IPA changed the app folder's name without changing the binary name. Some installers then looked for the nonexistent `Payload/FlickTunes.app/FlickTunes` executable. The build now produces a real `FlickTunes.app/FlickTunes`, verifies `CFBundleExecutable` from `Info.plist` and fails the release before upload if the archive is incorrect. Don't use the earlier v0.4.0 IPA for this installer error.
+**Fixed in v0.4.1:** The previous IPA changed the app folder's name without changing the binary name. Some installers then looked for the nonexistent `Payload/FlickTunes.app/FlickTunes` executable. The build now produces a real `FlickTunes.app/FlickTunes`, verifies `CFBundleExecutable` from `Info.plist` and fails the release before upload if the archive is incorrect. The RIFT IPA is now verified at `Payload/RIFT.app/RIFT`.
 
 If Sideloadly still fails after selecting the iPhone and using the new IPA, copy the **new error message**. Do not disable SIP or Gatekeeper to fix iPhone sideloading.
 
