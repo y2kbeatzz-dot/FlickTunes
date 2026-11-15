@@ -1,0 +1,50 @@
+name: Build FlickTunes IPA and DMG
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Prepare XcodeGen
+        run: brew install xcodegen
+      - name: Select Xcode
+        run: |
+          xcodebuild -version
+          xcodegen --version
+      - name: Build unsigned IPA and DMG
+        run: bash scripts/build_artifacts.sh
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlickTunes-macOS-DMG
+          path: dist/FlickTunes-macOS.dmg
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: FlickTunes-iOS-Unsigned-IPA
+          path: dist/FlickTunes-iOS-UNSIGNED.ipa
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish tag release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/FlickTunes-macOS.dmg \
+            dist/FlickTunes-iOS-UNSIGNED.ipa \
+            --title "FlickTunes ${GITHUB_REF_NAME}" \
+            --notes "Mac DMG is unsigned/not notarized. iOS IPA is UNSIGNED and requires your own code-signing identity for installation. Prototype Apple Music handoff; songs must be in Mac Music library."
