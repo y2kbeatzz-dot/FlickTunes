@@ -333,7 +333,7 @@ struct PortalSendView: View {
 
     private func temporaryURL(for filename: String) throws -> URL {
         let folder = FileManager.default.temporaryDirectory
-            .appendingPathComponent("FlickTunesPortal", isDirectory: true)
+            .appendingPathComponent("RIFTTransfers", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         return folder.appendingPathComponent("\(UUID().uuidString)-\(filename)")
     }
@@ -421,7 +421,7 @@ private struct PortalPickedMovie: Transferable {
             SentTransferredFile(movie.url)
         } importing: { received in
             let folder = FileManager.default.temporaryDirectory
-                .appendingPathComponent("FlickTunesPortal", isDirectory: true)
+                .appendingPathComponent("RIFTPortal", isDirectory: true)
             try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let originalExt = received.file.pathExtension
             let suffix = originalExt.isEmpty ? "mov" : originalExt
