@@ -17,6 +17,12 @@ Every push to `main` and every manual **Run workflow** generates its own develop
 
 **Important:** The iPhone IPA is **unsigned**. An unsigned IPA is a build artifact, *not an installable app*. You must code-sign it with an Apple Development certificate/team for your device, for example by building and running `FlickTunesiOS` from Xcode with your Apple ID. The Mac app is **ad-hoc signed but not notarized**: macOS Gatekeeper may block opening it until you explicitly approve it under Privacy & Security. No Apple Developer certificate is included in this repository.
 
+## Rebuilding both apps
+
+Every push to `main` automatically builds **both** deliverables: `FlickTunes-iOS-UNSIGNED.ipa` and `FlickTunes-macOS.dmg`. After a successful run, get the two files under [GitHub Releases](../../releases), not Actions artifacts. The iPhone IPA is unsigned and must be signed for your device; the Mac DMG is ad-hoc signed but not notarized.
+
+If your iPhone does **not** show up in Sideloadly *or Finder*, the build cannot fix USB device discovery. Reconnect the unlocked iPhone using a data-capable cable, check macOS accessory permission, and confirm Finder sees it before attempting the IPA install. You can still run the Mac DMG without an iPhone connected.
+
 ## 📱 Sideloadly: install FlickTunes on iPhone
 
 **Important: choose your physical iPhone in Sideloadly's device dropdown, not your Apple Silicon Mac.** On Apple Silicon, Sideloadly can show the Mac itself as an installation destination. If its error says *Apple Silicon install failed*, check the target selection first. For the Mac use the separate `FlickTunes-macOS.dmg`, not the IPA.
