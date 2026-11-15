@@ -62,6 +62,11 @@ private struct MacMenuView: View {
 
     var body: some View {
         Text(receiver.nearby.connectedPeers.isEmpty ? "Waiting for iPhone" : "iPhone connected")
+        if let phone = receiver.nearby.connectedPeers.first {
+            Text(phone.displayName).font(.caption)
+        } else if let name = receiver.nearby.preferredPeerName {
+            Text("Saved iPhone: \(name)").font(.caption)
+        }
         Text(receiver.nearby.status).font(.caption)
         Divider()
         Button("Open FlickTunes") {
@@ -150,9 +155,9 @@ struct MacHomeView: View {
                             .font(.headline)
                             .foregroundStyle(FlickStyle.pink)
                         Text("1. Open FlickTunes on iPhone.")
-                        Text("2. Select this Mac and approve the first pairing request.")
-                        Text("3. Play a song, then tap Flick to Mac.")
-                        Text("4. Allow permission to control Music if macOS asks.")
+                        Text("2. Pair once and approve your iPhone; FlickTunes remembers it.")
+                        Text("3. Play a song on iPhone, then open FlickTunes and gently flick.")
+                        Text("4. Allow access to control Apple's Music app if macOS asks.")
                     }
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.8))
@@ -160,7 +165,7 @@ struct MacHomeView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
 
-                    Text("The receiver keeps running in the menu bar when this window is closed. On iPhone, return to FlickTunes to reconnect after iOS suspends the app.")
+                    Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open FlickTunes on it. Connections may pause when iOS backgrounds the app.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                     HStack {
                         Text("Created by life999")
