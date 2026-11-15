@@ -15,6 +15,8 @@ struct PhoneHomeView: View {
     @AppStorage("flicktunes.motionFlickEnabled.v1") private var motionFlickEnabled = true
     @AppStorage("flicktunes.pauseAfterHandoff.v1") private var pauseAfterHandoff = true
     @State private var toast: String?
+    @State private var queuedFlick: TransferPacket?
+    @State private var queuedPeerName: String?
     @State private var showingHelp = false
     @State private var showingAbout = false
     @State private var confirmingForget = false
@@ -152,6 +154,21 @@ struct PhoneHomeView: View {
         .task {
             nearby.beginBrowsing()
             flick.onFlick = sendSong
+            nearby.onConnected = { peer in
+                guard let packet = queuedFlick else { return }
+                queuedFlick = nil
+                defer { queuedPeerName = nil }
+                guard peer.displayName == queuedPeerName,
+                      Date().timeIntervalSince(packet.sentAt) < 20 else {
+                    toast = "Saved flick expired or a different Mac connected. Flick again to send."
+                    return
+                }
+                if nearby.send(.handoff(packet), to: peer) {
+                    toast = "Reconnected — sending \(packet.title) to your Mac…"
+                } else {
+                    toast = "Could not send the saved flick. Try again."
+                }
+            }
             nearby.onAcknowledgement = { succeeded, details in
                 toast = details
                 if succeeded && pauseAfterHandoff {
@@ -170,6 +187,8 @@ struct PhoneHomeView: View {
                 if motionFlickEnabled { flick.start() }
             case .background:
                 flick.stop()
+                queuedFlick = nil
+                queuedPeerName = nil
                 nearby.suspendForBackground()
             default:
                 flick.stop()
@@ -185,8 +204,14 @@ struct PhoneHomeView: View {
         music.refresh()
         guard let packet = music.song else { toast = music.message; return }
         guard !nearby.connectedPeers.isEmpty else {
-            nearby.resumeAfterForeground()
-            toast = "Waiting for your saved Mac to reconnect. Keep FlickTunes open on both devices; pair once if this is your first use."
+            if let rememberedMac = nearby.preferredPeerName {
+                queuedFlick = packet
+                queuedPeerName = rememberedMac
+                nearby.resumeAfterForeground()
+                toast = "Flick saved for \(rememberedMac). Waiting up to 20 seconds for your Mac to reconnect…"
+            } else {
+                toast = "Select your Mac once and approve pairing. After that, it will reconnect automatically."
+            }
             return
         }
         if nearby.send(.handoff(packet)) { toast = "Sent \(packet.title) — waiting for Mac…" }
