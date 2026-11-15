@@ -15,7 +15,7 @@ rm -rf .build/dmg
 mkdir -p .build/dmg
 cp -R "$MAC_APP" .build/dmg/RIFT.app
 # Apple Silicon requires a valid code signature for execution. An ad-hoc
-# signature makes our local prototype internally consistent, but DOES NOT
+# signature makes this local build internally consistent, but DOES NOT
 # identify the developer or satisfy Gatekeeper notarization.
 # Never strip download quarantine from a release automatically.
 /usr/bin/codesign --force --sign - --timestamp=none .build/dmg/RIFT.app
@@ -26,8 +26,8 @@ hdiutil create -volname RIFT -srcfolder .build/dmg -ov -format UDZO "${PWD}/dist
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesiOS -configuration Release -sdk iphoneos -derivedDataPath "$PWD/.build/ios" CODE_SIGNING_ALLOWED=NO build
 
 # The .app directory, CFBundleExecutable and actual Mach-O binary MUST agree.
-# Renaming RIFT.app to RIFT.app without also renaming its
-# executable was the cause of Sideloadly's "Failed to chmod .../FlickTunes".
+# Bundle folder, CFBundleExecutable and Mach-O names are aligned so
+# Sideloadly can locate the app correctly.
 IOS_APP="$PWD/.build/ios/Build/Products/Release-iphoneos/RIFT.app"
 IOS_BINARY="RIFT"
 test -d "$IOS_APP" || { echo "ERROR: iPhone .app not produced at $IOS_APP"; exit 1; }
@@ -50,10 +50,10 @@ unzip -tqq dist/RIFT-iOS-UNSIGNED.ipa
 mkdir -p .build/ipa-verify
 unzip -qq dist/RIFT-iOS-UNSIGNED.ipa -d .build/ipa-verify
 PACKAGED_APP="$PWD/.build/ipa-verify/Payload/RIFT.app"
-test -x "$PACKAGED_APP/$IOS_BINARY" || { echo "ERROR: IPA lacks executable Payload/RIFT.app/FlickTunes"; exit 1; }
+test -x "$PACKAGED_APP/$IOS_BINARY" || { echo "ERROR: IPA lacks executable Payload/RIFT.app/RIFT"; exit 1; }
 PACKAGED_EXE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "$PACKAGED_APP/Info.plist")
 test "$PACKAGED_EXE" = "$IOS_BINARY" || { echo "ERROR: IPA metadata points to $PACKAGED_EXE"; exit 1; }
-echo "IPA VERIFIED: Payload/RIFT.app/FlickTunes (arm64), CFBundleExecutable=$PACKAGED_EXE, CFBundleIdentifier=$BUNDLE_ID"
+echo "IPA VERIFIED: Payload/RIFT.app/RIFT (arm64), CFBundleExecutable=$PACKAGED_EXE, CFBundleIdentifier=$BUNDLE_ID"
 ls -lh dist/*
 echo 'IMPORTANT: The iOS IPA is unsigned and will not install without signing.'
 echo 'The Mac app is ad-hoc signed but NOT Apple notarized. Gatekeeper will still block it until approved by the user.'
