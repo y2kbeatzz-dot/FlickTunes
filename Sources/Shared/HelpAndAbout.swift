@@ -25,7 +25,8 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 2, icon: "wifi", title: "Allow nearby access", description: "Keep the devices near each other with Wi-Fi and Bluetooth enabled. Allow Local Network access when prompted."),
                 GuideStep(number: 3, icon: "music.note", title: "Play a song in Apple Music", description: "Start your song in the Music app, then switch to FlickTunes and allow Media & Apple Music access."),
                 GuideStep(number: 4, icon: "link", title: "Pair once, then reconnect automatically", description: "Select your Mac the first time and approve it there. FlickTunes remembers both devices, so you don't need to select or type anything every launch."),
-                GuideStep(number: 5, icon: "arrow.up.right", title: "Gently flick your iPhone", description: "The motion gesture is enabled by default and your preference is saved. With FlickTunes open on iPhone, make a short gentle flick to send the song. The button is an optional backup.")
+                GuideStep(number: 5, icon: "arrow.up.right", title: "Flick to send music", description: "The Music screen has a motion sensor meter and test mode. Gently flick the iPhone while FlickTunes is open. Adjust sensitivity or use the send button."),
+                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Portal: drag photos, files and links", description: "Choose Portal from the Music screen. Pick a photo or file, or paste a link. Drag its card off the left edge and release. It flies off iPhone and a landing animation appears near the Mac pointer after transfer.")
             ]
         case .mac:
             return [
@@ -33,7 +34,8 @@ struct FlickTunesHelpView: View {
                 GuideStep(number: 2, icon: "wifi", title: "Prepare both devices", description: "Keep Wi-Fi and Bluetooth enabled, and approve Local Network access."),
                 GuideStep(number: 3, icon: "checkmark.shield", title: "Approve your iPhone once", description: "Accept the first pairing request from your iPhone. Approved phones are remembered; there's no need to repeat setup every time."),
                 GuideStep(number: 4, icon: "music.note", title: "Make the song available", description: "The song must exist in your Mac Music library. Streaming-only tracks outside the library may not resume."),
-                GuideStep(number: 5, icon: "slider.horizontal.3", title: "Enable Music automation", description: "Allow FlickTunes to control Music when prompted. Find the permission under System Settings → Privacy & Security → Automation.")
+                GuideStep(number: 5, icon: "slider.horizontal.3", title: "Enable Music automation", description: "Allow FlickTunes to control Music when prompted. Find the permission under System Settings → Privacy & Security → Automation."),
+                GuideStep(number: 6, icon: "square.on.square.dashed", title: "Catch Portal drops", description: "Open Portal on iPhone and swipe a selected item off the left edge. Mac saves photos and files to Downloads/FlickTunes and shows a temporary landing animation near your pointer. Links remain clickable in FlickTunes.")
             ]
         }
     }
@@ -111,8 +113,11 @@ struct FlickTunesAboutView: View {
                         VStack(alignment: .leading, spacing: 13) {
                             Text("CREATED BY")
                                 .font(.caption.bold()).foregroundStyle(FlickStyle.pink)
-                            Text("life999").font(.title2.bold())
-                            Text("Designed and created by life999. A nearby Apple Music handoff experience for iPhone and Mac.")
+                            Text("Ksyusha").font(.title2.bold())
+                            Text("life999 · Creator profile")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("Created by Ksyusha (life999). Apple Music handoff and Portal transfers for photos, files, links, and clipboard text.")
                                 .foregroundStyle(.white.opacity(0.7))
                             Link(destination: URL(string: "https://guns.lol/life999")!) {
                                 Label("Creator page · guns.lol/life999", systemImage: "link")
@@ -130,9 +135,9 @@ struct FlickTunesAboutView: View {
                         .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
                         VStack(alignment: .leading, spacing: 10) {
                             Label("Flick gesture", systemImage: "hand.draw").font(.headline)
-                            Text("Once paired, play Apple Music on your iPhone, open FlickTunes, and flick gently toward your Mac. No repeated pairing or tapping needed.")
+                            Text("Play Apple Music on iPhone, open FlickTunes, and flick gently. The sensor meter and Test mode show whether a gesture registers without sending.")
                             Label("Your choice stays saved", systemImage: "checkmark.shield").font(.headline)
-                            Text("Flick motion preferences and your approved device are remembered on your own devices. Motion sensing only runs while FlickTunes is open and active.")
+                            Text("Pairing, motion sensitivity and your selected gesture preference are saved locally. Motion sensing only runs while FlickTunes is foregrounded. Portal's left-edge card swipe is a separate gesture.")
                         }
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.8))
