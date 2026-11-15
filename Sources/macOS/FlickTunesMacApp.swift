@@ -251,9 +251,11 @@ struct MacHomeView: View {
                     Text("The receiver stays active in the menu bar even after you close this window. Your approved iPhone reconnects when you open FlickTunes on it. Connections may pause when iOS backgrounds the app.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.6))
                     HStack {
-                        Text("Created by life999")
+                        Text("Created by Ksyusha · life999")
                         Spacer()
-                        Button("About & creator") { showingAbout = true }
+                        Link("Creator page", destination: URL(string: "https://guns.lol/life999")!)
+                            .buttonStyle(.borderless)
+                        Button("About") { showingAbout = true }
                     }
                     .font(.footnote)
                     .foregroundStyle(.white.opacity(0.7))
