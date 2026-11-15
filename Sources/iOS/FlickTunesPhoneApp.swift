@@ -32,12 +32,12 @@ struct PhoneHomeView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
                         Image(systemName: "waveform.path").font(.largeTitle).foregroundStyle(FlickStyle.pink)
-                        Text("FlickTunes").font(.system(size: 38, weight: .bold, design: .rounded))
+                        Text("RIFT").font(.system(size: 38, weight: .bold, design: .rounded))
                         Text("Flick music, photos, files and links to your Mac.").foregroundStyle(.white.opacity(0.72))
                     }.padding(.top, 24)
                     HStack(spacing: 12) {
                         Button { showingHelp = true } label: {
-                            Label("Setup guide", systemImage: "list.number")
+                            Label("Get started", systemImage: "list.number")
                         }
                         Button { showingAbout = true } label: {
                             Label("About", systemImage: "info.circle")
@@ -50,9 +50,9 @@ struct PhoneHomeView: View {
                             Image(systemName: "square.on.square.dashed")
                                 .font(.title2)
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Portal • Photos, Files & Links")
+                                Text("RIFT Portal • Photos, Files & Links")
                                     .font(.headline)
-                                Text("Drag an item off your iPhone and let it land on your Mac")
+                                Text("Pick an item. Swipe left. Watch it arrive.")
                                     .font(.subheadline).opacity(0.85)
                             }
                             Spacer()
@@ -71,7 +71,7 @@ struct PhoneHomeView: View {
                     StatusCard(
                         symbol: "sparkles",
                         headline: "Quick start",
-                        subheadline: "1. Keep FlickTunes running on your Mac. 2. Pair once. 3. Play Apple Music on iPhone. 4. Gently flick your phone — no button needed."
+                        subheadline: "1. Keep RIFT running on your Mac. 2. Pair once. 3. Play Apple Music on iPhone. 4. Gently flick your phone — no button needed."
                     )
 
                     StatusCard(symbol: "music.note", headline: music.song.map { "\($0.title) · \($0.artist)" } ?? "Apple Music", subheadline: music.message)
@@ -128,7 +128,7 @@ struct PhoneHomeView: View {
                     .buttonStyle(.bordered)
                     Text(nearby.status).font(.footnote).foregroundStyle(.white.opacity(0.65))
                     if nearby.preferredPeerName != nil {
-                        Text("Your saved Mac is remembered. If iOS pauses nearby connections, FlickTunes will reconnect when you return. You don't need to pair again unless you select Forget Pairing.")
+                        Text("Your saved Mac is remembered. If iOS pauses nearby connections, RIFT will reconnect when you return. You don't need to pair again unless you select Forget Pairing.")
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.56))
                     }
@@ -199,7 +199,7 @@ struct PhoneHomeView: View {
                     .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
                     Toggle("Pause iPhone after Mac confirms playback", isOn: $pauseAfterHandoff)
                         .tint(FlickStyle.pink)
-                    Text("FlickTunes reads the Music app's current song and sends metadata, not audio. Keep both devices nearby and on Wi-Fi with Bluetooth enabled. Supported songs must be available in the Mac's Music library.")
+                    Text("RIFT reads the Music app's current song and sends metadata, not audio. Keep both devices nearby and on Wi-Fi with Bluetooth enabled. Supported songs must be available in the Mac's Music library.")
                         .font(.footnote).foregroundStyle(.white.opacity(0.55))
                     if let toast { StatusCard(symbol: "info.circle", headline: "Handoff", subheadline: toast) }
                     HStack {
