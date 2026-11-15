@@ -1,3 +1,4 @@
+import MultipeerConnectivity
 import SwiftUI
 
 @main
@@ -16,7 +17,7 @@ struct PhoneHomeView: View {
     @AppStorage("flicktunes.pauseAfterHandoff.v1") private var pauseAfterHandoff = true
     @State private var toast: String?
     @State private var queuedFlick: TransferPacket?
-    @State private var queuedPeerName: String?
+    @State private var queuedPeer: MCPeerID?
     @State private var showingHelp = false
     @State private var showingAbout = false
     @State private var confirmingForget = false
@@ -163,8 +164,9 @@ struct PhoneHomeView: View {
             nearby.onConnected = { peer in
                 guard let packet = queuedFlick else { return }
                 queuedFlick = nil
-                defer { queuedPeerName = nil }
-                guard peer.displayName == queuedPeerName,
+                let intendedMac = queuedPeer
+                defer { queuedPeer = nil }
+                guard intendedMac == peer,
                       Date().timeIntervalSince(packet.sentAt) < 20 else {
                     toast = "Saved flick expired or a different Mac connected. Flick again to send."
                     return
@@ -194,7 +196,7 @@ struct PhoneHomeView: View {
             case .background:
                 flick.stop()
                 queuedFlick = nil
-                queuedPeerName = nil
+                queuedPeer = nil
                 nearby.suspendForBackground()
             default:
                 flick.stop()
@@ -210,11 +212,11 @@ struct PhoneHomeView: View {
         music.refresh()
         guard let packet = music.song else { toast = music.message; return }
         guard !nearby.connectedPeers.isEmpty else {
-            if let rememberedMac = nearby.preferredPeerName {
+            if let rememberedMac = nearby.savedMacPeer {
                 queuedFlick = packet
-                queuedPeerName = rememberedMac
+                queuedPeer = rememberedMac
                 nearby.resumeAfterForeground()
-                toast = "Flick saved for \(rememberedMac). Waiting up to 20 seconds for your Mac to reconnect…"
+                toast = "Flick saved for \(rememberedMac.displayName). Waiting up to 20 seconds for your Mac to reconnect…"
             } else {
                 toast = "Select your Mac once and approve pairing. After that, it will reconnect automatically."
             }
