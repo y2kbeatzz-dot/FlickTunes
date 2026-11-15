@@ -1,68 +1,200 @@
+import AppKit
+import Combine
+import MultipeerConnectivity
 import SwiftUI
 
 @main
 struct FlickTunesMacApp: App {
+    // App-owned receiver continues running when the main window closes.
+    @StateObject private var receiver = MacReceiverModel()
+
     var body: some Scene {
-        WindowGroup { MacHomeView().preferredColorScheme(.dark) }
-            .defaultSize(width: 650, height: 540)
+        WindowGroup(id: "main") {
+            MacHomeView(receiver: receiver).preferredColorScheme(.dark)
+        }
+        .defaultSize(width: 710, height: 690)
+
+        MenuBarExtra("FlickTunes", systemImage: "waveform.path") {
+            MacMenuView(receiver: receiver)
+        }
+    }
+}
+
+final class MacReceiverModel: ObservableObject {
+    let nearby = NearbyBridge()
+    @Published private(set) var result = "Waiting for a song from your iPhone."
+    @Published private(set) var working = false
+    private var updates: AnyCancellable?
+
+    init() {
+        updates = nearby.objectWillChange.sink { [weak self] _ in
+            DispatchQueue.main.async { [weak self] in self?.objectWillChange.send() }
+        }
+        nearby.onHandoff = { [weak self] packet, peer in
+            self?.receive(packet, from: peer)
+        }
+    }
+
+    func start() { nearby.beginAdvertising() }
+
+    private func receive(_ packet: TransferPacket, from peer: MCPeerID) {
+        guard !working else {
+            _ = nearby.send(.acknowledgement(succeeded: false, details: "A handoff is already running."), to: peer)
+            return
+        }
+        working = true
+        result = "Locating \(packet.title) in Apple Music…"
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let playback = MacMusic.resume(packet)
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                self.result = playback.message
+                self.working = false
+                _ = self.nearby.send(.acknowledgement(succeeded: playback.succeeded, details: playback.message), to: peer)
+            }
+        }
+    }
+}
+
+private struct MacMenuView: View {
+    @ObservedObject var receiver: MacReceiverModel
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some View {
+        Text(receiver.nearby.connectedPeers.isEmpty ? "Waiting for iPhone" : "iPhone connected")
+        Text(receiver.nearby.status).font(.caption)
+        Divider()
+        Button("Open FlickTunes") {
+            openWindow(id: "main")
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
+        Button("Quit FlickTunes") { NSApplication.shared.terminate(nil) }
+            .onAppear { receiver.start() }
     }
 }
 
 struct MacHomeView: View {
-    @StateObject private var nearby = NearbyBridge()
-    @State private var result = "Waiting for a song from your iPhone."
-    @State private var working = false
+    @ObservedObject var receiver: MacReceiverModel
+    @State private var showingHelp = false
+    @State private var showingAbout = false
+    @State private var confirmingForget = false
 
     var body: some View {
         ZStack {
             FlickStyle.background.ignoresSafeArea()
-            VStack(alignment: .leading, spacing: 24) {
-                HStack(spacing: 14) {
-                    Image(systemName: "waveform.path").font(.system(size: 46, weight: .medium)).foregroundStyle(FlickStyle.pink)
-                    VStack(alignment: .leading) {
-                        Text("FlickTunes").font(.system(size: 38, weight: .bold, design: .rounded))
-                        Text("Your music, one flick away.").foregroundStyle(.white.opacity(0.7))
-                    }
-                }
-                StatusCard(symbol: "antenna.radiowaves.left.and.right", headline: "Mac receiver is running", subheadline: nearby.status)
-                StatusCard(symbol: working ? "hourglass" : "music.note", headline: working ? "Opening Apple Music…" : "Playback", subheadline: result)
-                if let packet = nearby.lastReceived {
-                    HStack(spacing: 12) {
-                        Image(systemName: "waveform").font(.largeTitle).foregroundStyle(FlickStyle.violet)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack(spacing: 14) {
+                        Image(systemName: "waveform.path")
+                            .font(.system(size: 45))
+                            .foregroundStyle(FlickStyle.pink)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(packet.title).font(.headline)
-                            Text(packet.artist).foregroundStyle(.white.opacity(0.7))
-                            Text("Received at \(Int(packet.position)) seconds").font(.caption).foregroundStyle(.white.opacity(0.5))
+                            Text("FlickTunes")
+                                .font(.system(size: 37, weight: .bold, design: .rounded))
+                            Text("Your music, one flick away.")
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                        Spacer()
+                        Button { showingAbout = true } label: {
+                            Label("About", systemImage: "info.circle")
+                        }.buttonStyle(.bordered)
+                    }
+
+                    Button { showingHelp = true } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "list.number")
+                            Text("Setup guide & troubleshooting").font(.headline)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                        }
+                        .padding(16)
+                        .background(FlickStyle.violet.opacity(0.23), in: RoundedRectangle(cornerRadius: 17))
+                    }
+                    .buttonStyle(.plain)
+
+                    StatusCard(
+                        symbol: receiver.nearby.connectedPeers.isEmpty ? "antenna.radiowaves.left.and.right" : "checkmark.circle.fill",
+                        headline: receiver.nearby.connectedPeers.isEmpty ? "Mac receiver ready" : "iPhone connected",
+                        subheadline: receiver.nearby.status
+                    )
+                    if let name = receiver.nearby.preferredPeerName {
+                        HStack {
+                            Label("Approved iPhone: \(name)", systemImage: "iphone")
+                            Spacer()
+                            Button("Forget Pairing") { confirmingForget = true }
+                                .buttonStyle(.bordered)
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.75))
+                    }
+                    StatusCard(
+                        symbol: receiver.working ? "hourglass" : "music.note",
+                        headline: receiver.working ? "Opening Apple Music…" : "Playback",
+                        subheadline: receiver.result
+                    )
+                    if let packet = receiver.nearby.lastReceived {
+                        HStack(spacing: 12) {
+                            Image(systemName: "waveform")
+                                .font(.largeTitle)
+                                .foregroundStyle(FlickStyle.violet)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(packet.title).font(.headline)
+                                Text(packet.artist).foregroundStyle(.white.opacity(0.7))
+                                Text("Received at \(Int(packet.position)) seconds")
+                                    .font(.caption).foregroundStyle(.white.opacity(0.55))
+                            }
                         }
                     }
-                }
-                Spacer()
-                Text("Keep this app open on your Mac. On your iPhone, pair with this Mac and tap Flick to Mac or enable the motion gesture. For Apple Music control, allow FlickTunes in System Settings → Privacy & Security → Automation.")
-                    .font(.footnote).foregroundStyle(.white.opacity(0.6))
-            }
-            .padding(30)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        }
-        .onAppear {
-            nearby.onHandoff = { packet, peer in
-                working = true
-                result = "Locating \(packet.title)…"
-                DispatchQueue.global(qos: .userInitiated).async {
-                    let playback = MacMusic.resume(packet)
-                    DispatchQueue.main.async {
-                        result = playback.message
-                        working = false
-                        _ = nearby.send(.acknowledgement(succeeded: playback.succeeded, details: playback.message), to: peer)
+                    VStack(alignment: .leading, spacing: 9) {
+                        Label("Quick start", systemImage: "sparkles")
+                            .font(.headline)
+                            .foregroundStyle(FlickStyle.pink)
+                        Text("1. Open FlickTunes on iPhone.")
+                        Text("2. Select this Mac and approve the first pairing request.")
+                        Text("3. Play a song, then tap Flick to Mac.")
+                        Text("4. Allow permission to control Music if macOS asks.")
                     }
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.white.opacity(0.09), in: RoundedRectangle(cornerRadius: 18))
+
+                    Text("The receiver keeps running in the menu bar when this window is closed. On iPhone, return to FlickTunes to reconnect after iOS suspends the app.")
+                        .font(.footnote).foregroundStyle(.white.opacity(0.6))
+                    HStack {
+                        Text("Created by life999")
+                        Spacer()
+                        Button("About & creator") { showingAbout = true }
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.7))
                 }
+                .padding(27)
+                .frame(maxWidth: .infinity, alignment: .topLeading)
             }
-            nearby.beginAdvertising()
         }
-        .alert("Pair with iPhone?", isPresented: Binding(get: { nearby.invitationFrom != nil }, set: { if !$0 { nearby.acceptInvitation(false) } })) {
-            Button("Allow") { nearby.acceptInvitation(true) }
-            Button("Decline", role: .cancel) { nearby.acceptInvitation(false) }
+        .task { receiver.start() }
+        .sheet(isPresented: $showingHelp) {
+            FlickTunesHelpView(platform: .mac).frame(minWidth: 510, minHeight: 540)
+        }
+        .sheet(isPresented: $showingAbout) {
+            FlickTunesAboutView().frame(minWidth: 430, minHeight: 500)
+        }
+        .confirmationDialog("Forget approved iPhone?", isPresented: $confirmingForget, titleVisibility: .visible) {
+            Button("Forget and Disconnect", role: .destructive) { receiver.nearby.forgetPairedDevice() }
+            Button("Cancel", role: .cancel) { }
         } message: {
-            Text("Allow \(nearby.invitationFrom ?? "this device") to send Apple Music handoffs to this Mac?")
+            Text("You will need to approve pairing again.")
+        }
+        .alert("Pair with iPhone?", isPresented: Binding(
+            get: { receiver.nearby.invitationFrom != nil },
+            set: { if !$0 { receiver.nearby.acceptInvitation(false) } }
+        )) {
+            Button("Allow") { receiver.nearby.acceptInvitation(true) }
+            Button("Decline", role: .cancel) { receiver.nearby.acceptInvitation(false) }
+        } message: {
+            Text("Allow \(receiver.nearby.invitationFrom ?? "this iPhone") to transfer Apple Music playback?")
         }
     }
 }
