@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090611">
+  <meta name="description" content="RIFT brings your iPhone and Mac together. Throw photos, videos, files and links through a glowing portal on your Mac.">
+  <meta property="og:title" content="RIFT — Send it. See it arrive.">
+  <meta property="og:description" content="A dimensional handoff between iPhone and Mac. Pick it, swipe it, and watch it emerge from a portal.">
+  <meta property="og:type" content="website">
+  <title>RIFT — Send it. See it arrive.</title>
+  <style>
+    :root{color-scheme:dark;--bg:#090611;--surface:#171023;--line:#382a4c;--muted:#b9b0c9;--pink:#fc5ba9;--purple:#9d71ff;--cyan:#67e9f6;--white:#fbf9ff}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55;overflow-x:hidden}
+    body:before{content:"";position:absolute;left:-25vw;top:-250px;width:70vw;height:680px;z-index:-1;background:radial-gradient(ellipse,rgba(125,68,219,.19),transparent 65%);pointer-events:none}
+    a{color:inherit}a:focus-visible,button:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+    .wrap{width:min(1150px,calc(100% - 44px));margin-inline:auto}
+    .nav{position:sticky;top:0;z-index:50;background:rgba(9,6,17,.86);backdrop-filter:blur(22px);border-bottom:1px solid #2b203a}
+    .nav-inner{height:72px;display:flex;align-items:center;gap:26px;justify-content:space-between}
+    .brand{display:inline-flex;align-items:center;gap:11px;text-decoration:none;font-size:22px;font-weight:850;letter-spacing:.10em}
+    .mark{width:37px;height:37px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,#45207a,#b34e94);box-shadow:0 0 23px #ac54e43a}
+    .mark svg{height:30px;width:30px}
+    nav{display:flex;align-items:center;gap:25px}nav a{font-size:14px;font-weight:600;text-decoration:none;color:var(--muted)}nav a:hover{color:white}
+    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:45px;padding:11px 20px;border-radius:14px;text-decoration:none;font-weight:700;font-size:14px;border:1px solid transparent;transition:transform .2s,border .2s,background .2s;cursor:pointer}
+    .button:hover{transform:translateY(-2px)}
+    .button.primary{background:linear-gradient(110deg,#ed63ad,#a76eff);color:#140720;box-shadow:0 13px 45px #c55c9c45}
+    .button.secondary{background:#ffffff0c;border-color:#7b668b;color:white}
+    .button.small{min-height:39px;padding:8px 14px}
+    .eyebrow{display:inline-flex;gap:8px;align-items:center;border:1px solid #5e3e84;color:#e7c5ff;background:#a35bee1a;padding:5px 13px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+    .eyebrow:before{content:"";width:7px;height:7px;background:var(--cyan);border-radius:50%;box-shadow:0 0 10px var(--cyan)}
+    .hero{display:grid;grid-template-columns:1fr 1.02fr;align-items:center;gap:40px;padding-top:110px;padding-bottom:100px;min-height:720px}
+    .hero h1{font-size:clamp(46px,6.3vw,83px);line-height:1.045;margin:24px 0 22px;letter-spacing:-.065em;max-width:670px}
+    .gradient{background:linear-gradient(115deg,#fff 3%,#f4a5d0 40%,#b59bff 72%,#7af0ff 100%);color:transparent;background-clip:text;-webkit-background-clip:text}
+    .lead{font-size:18px;color:#c6bdcf;max-width:540px;margin:0 0 29px}
+    .actions{display:flex;flex-wrap:wrap;gap:12px}
+    .footnote{font-size:12px;color:#9d93af;margin:16px 0}
+    .visual{height:480px;position:relative;display:flex;justify-content:center;align-items:center}
+    .orbit{position:absolute;width:470px;height:470px;max-width:100%;border-radius:50%;background:radial-gradient(circle,#b753d133,transparent 64%);filter:blur(10px)}
+    .mac{position:relative;border:1px solid #6c537c;border-radius:22px;width:100%;height:345px;background:linear-gradient(125deg,#1e172f,#090916 70%);box-shadow:0 30px 100px #0009,0 0 40px #ad64f31c;overflow:hidden}
+    .mac-top{height:38px;border-bottom:1px solid #534363;background:#1b1429dd;display:flex;gap:7px;align-items:center;padding:0 17px}
+    .mac-top i{height:10px;width:10px;border-radius:50%;background:#fb8aae}.mac-top i:nth-child(2){background:#ebca7d}.mac-top i:nth-child(3){background:#93dcbe}
+    .mac-title{position:absolute;left:50%;top:9px;transform:translateX(-50%);font-size:11px;color:#a99abf}
+    .mac-lines{position:absolute;left:22px;top:84px;right:35%;display:grid;gap:16px}
+    .mac-lines div{height:12px;border-radius:15px;background:#ffffff12}.mac-lines div:nth-child(2){width:70%}.mac-lines div:nth-child(3){width:85%}
+    .portal-halo{position:absolute;right:-94px;top:3px;height:342px;width:275px;background:radial-gradient(ellipse,#fd4ca55e,#8862ff4b 41%,transparent 69%);filter:blur(11px)}
+    .portal{position:absolute;right:-32px;top:42px;width:103px;height:265px;border:9px solid #ed81e5;border-radius:50%;background:radial-gradient(ellipse,#241037 28%,#0d0920 75%);box-shadow:0 0 13px #f768e3,0 0 35px #ac66fd,0 0 65px #7b6fff7a,inset 0 0 19px #66f4ff;animation:pulse 3.5s ease-in-out infinite}
+    .portal:after{content:"";position:absolute;inset:7px;border:2px solid #7fefff;border-radius:50%;opacity:.8}
+    .transfer-card{position:absolute;right:68px;top:113px;height:123px;width:229px;padding:16px;display:flex;gap:15px;align-items:center;background:linear-gradient(150deg,#37304d,#1c1929);border:1px solid #a181cb;border-radius:17px;box-shadow:0 25px 45px #0006;animation:emerge 5s ease-in-out infinite}
+    .transfer-card .photo{width:70px;height:78px;flex:none;border-radius:10px;background:linear-gradient(135deg,#f6a8ce,#a968ed 64%,#52d9f3);display:grid;place-items:center;font-size:30px}
+    .transfer-card strong{font-size:13px;white-space:nowrap}.transfer-card span{font-size:10px;color:#b6a9ca;display:block;margin-top:4px}
+    .phone{position:absolute;left:-18px;bottom:-18px;width:154px;height:253px;border:5px solid #a5a1b1;border-radius:30px;background:linear-gradient(140deg,#211535,#090b19);box-shadow:0 25px 60px #0009;transform:rotate(-12deg)}
+    .phone:before{content:"";position:absolute;top:7px;left:49px;background:#05040a;border-radius:30px;width:54px;height:13px}
+    .phone-inner{margin:40px 14px;background:linear-gradient(125deg,#b459d9,#f05ca8);height:130px;border-radius:15px;display:grid;place-items:center;font-size:50px}
+    .phone-label{font-size:11px;text-align:center;color:#e4d9ed}
+    .transfer-arrow{position:absolute;left:137px;bottom:125px;color:#9df6ff;font-size:35px;text-shadow:0 0 22px #67e9f6;transform:rotate(-20deg)}
+    @keyframes pulse{50%{box-shadow:0 0 22px #f768e3,0 0 55px #ac66fd,0 0 100px #7b6fff99,inset 0 0 25px #66f4ff}}
+    @keyframes emerge{0%,12%{opacity:0;transform:translateX(115px) scale(.6)}29%,68%{opacity:1;transform:translateX(0) scale(1)}85%,100%{opacity:0;transform:translateX(-15px)}}
+    section{padding:90px 0}.section-top{text-align:center;margin:0 auto 43px;max-width:750px}.section-top h2{font-size:clamp(33px,4.3vw,55px);line-height:1.12;letter-spacing:-.05em;margin:14px 0}.section-top p{font-size:16px;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+    .tile{background:linear-gradient(145deg,#21182f,#130f1d);border:1px solid #41314e;border-radius:24px;padding:27px;min-height:208px}
+    .tile .symbol{font-size:31px;display:block;margin-bottom:16px}
+    .tile h3{margin:0 0 9px;font-size:20px}.tile p{margin:0;color:var(--muted);font-size:14px}
+    .effect-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.effect{border:1px solid #443354;background:#1a1227;border-radius:19px;padding:19px}.effect-icon{display:grid;place-items:center;width:40px;height:40px;background:#a766f32a;color:#e3b9ff;border:1px solid #b07dff4c;border-radius:13px;font-size:21px}.effect h3{font-size:16px;margin:16px 0 5px}.effect p{font-size:12px;color:var(--muted);margin:0}
+    .how{counter-reset:steps;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.step{border-top:1px solid #5f4874;padding:20px 6px}.step:before{counter-increment:steps;content:"0" counter(steps);color:var(--pink);font-size:14px;font-weight:850}.step h3{font-size:19px}.step p{color:var(--muted);font-size:14px}
+    .download{border:1px solid #654177;border-radius:28px;background:radial-gradient(ellipse at right,#7a348a45,transparent 68%),#1b1127;padding:45px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:28px}.download h2{font-size:34px;letter-spacing:-.04em;margin:0 0 9px}.download p{color:var(--muted);margin:0 0 12px}.download-buttons{display:flex;flex-direction:column;gap:10px}
+    .release-meta{font-size:12px;color:#bdb1cb}
+    .footer{border-top:1px solid #3a2d48;padding:30px 0 38px;color:#a99fb7;font-size:13px}
+    .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}.footer-links{display:flex;gap:23px;flex-wrap:wrap}.footer a{text-decoration:none}.footer a:hover{color:white}
+    @media(max-width:900px){.hero{grid-template-columns:1fr;padding-top:80px;gap:20px}.visual{height:430px;max-width:560px;width:100%;margin:auto}.grid{grid-template-columns:repeat(2,1fr)}.effect-grid{grid-template-columns:repeat(2,1fr)}.download{grid-template-columns:1fr}nav a:not(.button){display:none}}
+    @media(max-width:560px){.wrap{width:min(100% - 32px,1150px)}.hero{padding-top:67px;min-height:0;padding-bottom:30px}.visual{height:350px;transform:scale(.81);width:122%;transform-origin:left top;margin-bottom:-55px}.mac{height:320px}.grid{grid-template-columns:1fr}.effect-grid{gap:9px}.tile{min-height:0}.download{padding:28px}.download-buttons .button{width:100%}.nav-inner{height:65px}section{padding:60px 0}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.transfer-card{opacity:1;transform:none}}
+  </style>
+</head>
+<body>
+  <header class="nav"><div class="wrap nav-inner">
+    <a class="brand" href="#home" aria-label="RIFT home"><span class="mark"><svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="39" cy="32" rx="12" ry="25" fill="none" stroke="#f8aff1" stroke-width="6"/><rect x="8" y="22" width="28" height="20" rx="5" fill="#cab1ff" stroke="#fff" stroke-width="2"/><path d="M15 32h17" stroke="#5b358e" stroke-width="3"/></svg></span> RIFT</a>
+    <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#effects">Effects</a><a href="#how">How it works</a><a href="#download" class="button small primary">Get RIFT ↗</a></nav>
+  </div></header>
+  <main>
+    <div class="wrap hero" id="home">
+      <div><span class="eyebrow">iPhone ↔ Mac · RIFT 0.9</span>
+      <h1>Send it.<br><span class="gradient">See it arrive.</span></h1>
+      <p class="lead">Your stuff deserves a better entrance. Choose a photo, video, file or link on your iPhone, swipe it away, and watch it emerge from a glowing portal on the right edge of your Mac.</p>
+      <div class="actions"><a class="button primary" href="#download">Get RIFT for Mac + iPhone ↗</a><a class="button secondary" href="#how">See how it works</a></div>
+      <p class="footnote">Direct nearby transfers · Eight arrival effects · Made by Ksyusha</p></div>
+      <div class="visual" aria-label="Illustration of an item flying from an iPhone into a glowing portal on a Mac screen">
+        <div class="orbit"></div>
+        <div class="mac"><div class="mac-top"><i></i><i></i><i></i><span class="mac-title">RIFT • Connected</span></div><div class="mac-lines"><div></div><div></div><div></div></div><div class="portal-halo"></div><div class="portal"></div><div class="transfer-card"><div class="photo">✦</div><div><strong>Just arrived.</strong><span>Photo from iPhone</span><span>Saved to Downloads/RIFT</span></div></div></div>
+        <div class="phone"><div class="phone-inner">✦</div><div class="phone-label">Swipe to send ←</div></div><div class="transfer-arrow">↗</div>
+      </div>
+    </div>
+    <section id="features"><div class="wrap"><div class="section-top"><span class="eyebrow">Everything, in one gesture</span><h2>More than a file transfer.</h2><p>RIFT combines a local, paired connection with a little magic on both screens.</p></div>
+      <div class="grid">
+        <article class="tile"><span class="symbol">🖼️</span><h3>Photos & videos</h3><p>Choose from Photos. Swipe left and see a visual arrival on your Mac.</p></article>
+        <article class="tile"><span class="symbol">📁</span><h3>Files & documents</h3><p>Pick from Files and receive them in your Mac's Downloads/RIFT folder.</p></article>
+        <article class="tile"><span class="symbol">🔗</span><h3>Links & clipboard</h3><p>Send a link or copied text on purpose. Links won't open on your Mac without a click.</p></article>
+        <article class="tile"><span class="symbol">🎵</span><h3>Music handoff</h3><p>Flick your iPhone to send the current Apple Music song and position to your Mac's Music library.</p></article>
+        <article class="tile"><span class="symbol">✨</span><h3>Portal arrival</h3><p>A glowing opening appears at the far right edge of your Mac and the item emerges into view.</p></article>
+        <article class="tile"><span class="symbol">🔒</span><h3>Nearby by design</h3><p>RIFT uses encrypted peer-to-peer MultipeerConnectivity instead of uploading your files to a RIFT server.</p></article>
+      </div>
+    </div></section>
+    <section id="effects"><div class="wrap"><div class="section-top"><span class="eyebrow">Make an entrance</span><h2>Eight ways to arrive.</h2><p>Choose an effect on iPhone. RIFT remembers it and plays your selection on Mac when an item arrives.</p></div>
+      <div class="effect-grid">
+        <div class="effect"><span class="effect-icon">←</span><h3>Glide</h3><p>Slide out of the portal.</p></div>
+        <div class="effect"><span class="effect-icon">✧</span><h3>Bloom</h3><p>Grow into view.</p></div>
+        <div class="effect"><span class="effect-icon">◌</span><h3>Dissolve</h3><p>Softly materialize.</p></div>
+        <div class="effect"><span class="effect-icon">↻</span><h3>Vortex</h3><p>Spin into place.</p></div>
+        <div class="effect"><span class="effect-icon">≋</span><h3>Pulse</h3><p>Flash and pop.</p></div>
+        <div class="effect"><span class="effect-icon">ϟ</span><h3>Warp</h3><p>Stretch through space.</p></div>
+        <div class="effect"><span class="effect-icon">✦</span><h3>Stardust</h3><p>Trail glowing particles.</p></div>
+        <div class="effect"><span class="effect-icon">◎</span><h3>Ripple</h3><p>Expand luminous rings.</p></div>
+      </div></div></section>
+    <section id="how"><div class="wrap"><div class="section-top"><span class="eyebrow">How it works</span><h2>Pair once. Then just send.</h2></div>
+      <div class="how"><div class="step"><h3>Open RIFT on Mac</h3><p>Keep the Mac receiver running in the menu bar. Approve your iPhone the first time.</p></div><div class="step"><h3>Choose your item</h3><p>In the RIFT iPhone app, pick a photo, video or file, or enter a web link and pick your arrival effect.</p></div><div class="step"><h3>Drag left to send</h3><p>Swipe the item off the iPhone's left edge. The Mac saves it and displays the chosen portal arrival.</p></div></div>
+    </div></section>
+    <section id="download"><div class="wrap">
+      <div class="download"><div><span class="eyebrow">Download RIFT</span><h2>Your devices. Your portal.</h2><p>Get the Mac receiver and iPhone sender. Both apps are required for nearby handoff.</p><p class="release-meta" id="release-status" role="status">Finding the latest RIFT build…</p></div>
+      <div class="download-buttons"><a class="button primary" id="mac-download" href="https://github.com/y2kbeatzz-dot/FlickTunes/releases/download/build-43763772093-attempt-1/RIFT-macOS.dmg">↓ Download for Mac (DMG)</a>
+      <a class="button secondary" id="ios-download" href="https://github.com/y2kbeatzz-dot/FlickTunes/releases/download/build-43763772093-attempt-1/RIFT-iOS-UNSIGNED.ipa">↓ Download for iPhone (IPA)</a></div></div>
+      <p class="footnote">The IPA is unsigned and requires signing with your Apple ID through Sideloadly or Xcode. The Mac build isn't Apple-notarized, so Gatekeeper may request approval. Tested in CI; verify operation on your own devices before relying on it.</p>
+      <p class="footnote"><a id="release-details" href="https://github.com/y2kbeatzz-dot/FlickTunes/releases/tag/build-43763772093-attempt-1">Release notes & checksums ↗</a> · <a href="support.html">Installation help</a></p>
+    </div></section>
+  </main>
+  <footer class="footer"><div class="wrap footer-inner"><span><b style="color:#fff">RIFT</b> · Created by <a href="https://guns.lol/life999" target="_blank" rel="noopener noreferrer">Ksyusha (life999)</a> · Independent project, not affiliated with Apple.</span><div class="footer-links"><a href="privacy.html">Privacy</a><a href="support.html">Support</a><a href="https://github.com/y2kbeatzz-dot/FlickTunes" target="_blank" rel="noopener noreferrer">GitHub</a></div></div></footer>
+  <script>
+    // The repo might later be renamed to RIFT. GitHub redirects old links.
+    // Resolve the newest RIFT-labelled GitHub release in-browser instead of
+    // pinning the landing page to an obsolete build after future launches.
+    (async function(){
+      const repo="y2kbeatzz-dot/FlickTunes";
+      try{
+        const response=await fetch("https://api.github.com/repos/"+repo+"/releases?per_page=25",{headers:{"Accept":"application/vnd.github+json"}});
+        if(!response.ok)throw Error("GitHub releases unavailable");
+        const releases=await response.json();
+        const latest=releases.find(r=>!r.draft&&r.assets.some(a=>a.name==="RIFT-macOS.dmg")&&r.assets.some(a=>a.name==="RIFT-iOS-UNSIGNED.ipa"));
+        if(!latest)throw Error("No RIFT release found");
+        const mac=latest.assets.find(a=>a.name==="RIFT-macOS.dmg");
+        const iphone=latest.assets.find(a=>a.name==="RIFT-iOS-UNSIGNED.ipa");
+        document.getElementById("mac-download").href=mac.browser_download_url;
+        document.getElementById("ios-download").href=iphone.browser_download_url;
+        document.getElementById("release-details").href=latest.html_url;
+        document.getElementById("release-status").textContent="Latest verified package: "+latest.name;
+      }catch(e){document.getElementById("release-status").textContent="RIFT 0.9.0 · GitHub release downloads";}
+    })();
+  </script>
+</body>
+</html>
