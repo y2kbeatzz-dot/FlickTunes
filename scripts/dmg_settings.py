@@ -3,7 +3,7 @@ Uses dmgbuild to write .DS_Store directly: no GUI access or Finder automation.
 """
 import os
 
-root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+root = os.getcwd()  # build script changes to the repository root
 app = os.path.join(root, ".build", "mac", "Build", "Products", "Release", "RIFT.app")
 art = os.path.join(root, ".build", "rift-installer-background.png")
 if not os.path.isdir(app):
