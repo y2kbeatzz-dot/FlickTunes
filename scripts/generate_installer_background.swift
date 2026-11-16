@@ -73,7 +73,7 @@ drawText("DRAG TO INSTALL", x: 214, y: 307, fontSize: 12, weight: .bold,
 c.saveGState()
 let center = CGPoint(x: 360, y: 185)
 for i in 0..<10 {
-    let opacity = CGFloat(0.04 + (10-i) * 0.008)
+    let opacity = 0.04 + CGFloat(10 - i) * 0.008
     c.setStrokeColor(color(0.89, 0.34, 0.88, opacity))
     c.setLineWidth(CGFloat(14-i) * 0.9)
     c.strokeEllipse(in: CGRect(x: center.x - CGFloat(22+i*5),
