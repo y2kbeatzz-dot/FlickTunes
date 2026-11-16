@@ -16,7 +16,7 @@ The installer is built by `scripts/generate_installer_background.swift` (retina 
 
 ## 🌐 RIFT website
 
-The new [RIFT launch website](website/[index.html](https://y2kbeatzz-dot.github.io/RIFT/)) includes downloads, features, eight animation effects, a privacy page, and support. To publish it with GitHub Pages and rename the repository to `RIFT`, follow **[LAUNCH.md](LAUNCH.md)**. GitHub Pages must be enabled in Settings → Pages → Source: GitHub Actions before the website is publicly live.
+The new [RIFT launch website]((https://y2kbeatzz-dot.github.io/RIFT/)) includes downloads, features, eight animation effects, a privacy page, and support. To publish it with GitHub Pages and rename the repository to `RIFT`, follow **[LAUNCH.md](LAUNCH.md)**. GitHub Pages must be enabled in Settings → Pages → Source: GitHub Actions before the website is publicly live.
 
 ## 📦 Download the IPA and DMG
 
