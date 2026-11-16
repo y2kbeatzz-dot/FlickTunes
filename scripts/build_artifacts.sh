@@ -28,17 +28,24 @@ rm -f dist/RIFT-macOS.dmg
 # before any release can be published. Only mount our own locally built image.
 hdiutil verify dist/RIFT-macOS.dmg
 MOUNT_DIR="$(mktemp -d /tmp/rift-dmg-check.XXXXXX)"
-hdiutil attach dist/RIFT-macOS.dmg -readonly -nobrowse -mountpoint "$MOUNT_DIR" >/dev/null
-test -d "$MOUNT_DIR/RIFT.app"
-test -L "$MOUNT_DIR/Applications"
-test "$(readlink "$MOUNT_DIR/Applications")" = "/Applications"
-test -s "$MOUNT_DIR/.DS_Store"
-test -d "$MOUNT_DIR/.background"
-find "$MOUNT_DIR/.background" -maxdepth 1 -type f | grep -q .
+echo "Mounting custom DMG at $MOUNT_DIR"
+hdiutil attach dist/RIFT-macOS.dmg -readonly -nobrowse -noautoopen -mountpoint "$MOUNT_DIR"
+ls -la "$MOUNT_DIR"
+echo "Verifying app…"
+test -d "$MOUNT_DIR/RIFT.app" || { echo "ERROR: RIFT.app missing inside DMG"; exit 1; }
+echo "Verifying Applications shortcut…"
+test -L "$MOUNT_DIR/Applications" || { echo "ERROR: Applications shortcut missing/not a symlink"; exit 1; }
+test "$(readlink "$MOUNT_DIR/Applications")" = "/Applications" || { echo "ERROR: Applications shortcut has unexpected target"; exit 1; }
+echo "Verifying Finder layout…"
+test -s "$MOUNT_DIR/.DS_Store" || { echo "ERROR: Finder .DS_Store missing"; exit 1; }
+echo "Verifying branded background…"
+find "$MOUNT_DIR" -maxdepth 3 -type f | grep -i background || true
+test -d "$MOUNT_DIR/.background" || { echo "ERROR: Installer background folder missing"; exit 1; }
+find "$MOUNT_DIR/.background" -maxdepth 1 -type f | grep -q . || { echo "ERROR: Background artwork file missing"; exit 1; }
 /usr/bin/codesign --verify --deep --strict "$MOUNT_DIR/RIFT.app"
-hdiutil detach "$MOUNT_DIR" >/dev/null
+hdiutil detach "$MOUNT_DIR"
 rmdir "$MOUNT_DIR"
-echo 'CUSTOM DMG VERIFIED: branded background, RIFT.app, /Applications alias, Finder layout, app signature'
+echo 'CUSTOM DMG VERIFIED: branded background, RIFT.app, /Applications shortcut, Finder layout, app signature'
 
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesiOS -configuration Release -sdk iphoneos -derivedDataPath "$PWD/.build/ios" CODE_SIGNING_ALLOWED=NO build
 
