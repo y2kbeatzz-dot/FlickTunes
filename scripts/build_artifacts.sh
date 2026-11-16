@@ -11,17 +11,34 @@ xcodegen generate
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesMac -configuration Release -sdk macosx -derivedDataPath "$PWD/.build/mac" CODE_SIGNING_ALLOWED=NO build
 MAC_APP="$PWD/.build/mac/Build/Products/Release/RIFT.app"
 test -d "$MAC_APP"
-rm -rf .build/dmg
-mkdir -p .build/dmg
-cp -R "$MAC_APP" .build/dmg/RIFT.app
-# Apple Silicon requires a valid code signature for execution. An ad-hoc
-# signature makes this local build internally consistent, but DOES NOT
-# identify the developer or satisfy Gatekeeper notarization.
-# Never strip download quarantine from a release automatically.
-/usr/bin/codesign --force --sign - --timestamp=none .build/dmg/RIFT.app
-/usr/bin/codesign --verify --deep --strict --verbose=2 .build/dmg/RIFT.app
-ln -s /Applications .build/dmg/Applications
-hdiutil create -volname RIFT -srcfolder .build/dmg -ov -format UDZO "${PWD}/dist/RIFT-macOS.dmg"
+# Ad-hoc signing preserves internal app integrity, but this is not Apple
+# Developer ID signing/notarization. No Gatekeeper bypass is performed.
+/usr/bin/codesign --force --sign - --timestamp=none "$MAC_APP"
+/usr/bin/codesign --verify --deep --strict --verbose=2 "$MAC_APP"
+
+# Build RIFT's custom Finder installer in headless CI (no Finder automation).
+# dmgbuild generates the .DS_Store layout and carries the retina portal art.
+swift scripts/generate_installer_background.swift "$PWD/.build/rift-installer-background.png"
+python3 -m venv .build/dmg-python
+.build/dmg-python/bin/python -m pip install -q 'dmgbuild==1.6.7'
+rm -f dist/RIFT-macOS.dmg
+.build/dmg-python/bin/python -m dmgbuild -s scripts/dmg_settings.py 'RIFT • Install' "${PWD}/dist/RIFT-macOS.dmg"
+
+# Verify actual mounted DMG contents, including the custom Finder background,
+# before any release can be published. Only mount our own locally built image.
+hdiutil verify dist/RIFT-macOS.dmg
+MOUNT_DIR="$(mktemp -d /tmp/rift-dmg-check.XXXXXX)"
+hdiutil attach dist/RIFT-macOS.dmg -readonly -nobrowse -mountpoint "$MOUNT_DIR" >/dev/null
+test -d "$MOUNT_DIR/RIFT.app"
+test -L "$MOUNT_DIR/Applications"
+test "$(readlink "$MOUNT_DIR/Applications")" = "/Applications"
+test -s "$MOUNT_DIR/.DS_Store"
+test -d "$MOUNT_DIR/.background"
+find "$MOUNT_DIR/.background" -maxdepth 1 -type f | grep -q .
+/usr/bin/codesign --verify --deep --strict "$MOUNT_DIR/RIFT.app"
+hdiutil detach "$MOUNT_DIR" >/dev/null
+rmdir "$MOUNT_DIR"
+echo 'CUSTOM DMG VERIFIED: branded background, RIFT.app, /Applications alias, Finder layout, app signature'
 
 xcodebuild -project FlickTunes.xcodeproj -scheme FlickTunesiOS -configuration Release -sdk iphoneos -derivedDataPath "$PWD/.build/ios" CODE_SIGNING_ALLOWED=NO build
 
