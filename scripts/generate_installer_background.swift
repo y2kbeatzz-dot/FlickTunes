@@ -9,7 +9,7 @@ let width = 720
 let height = 440
 guard let bitmap = NSBitmapImageRep(
     bitmapDataPlanes: nil, pixelsWide: width * 2, pixelsHigh: height * 2,
-    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: false,
+    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
     isPlanar: false, colorSpaceName: .deviceRGB,
     bytesPerRow: 0, bitsPerPixel: 0
 ), let ctx = NSGraphicsContext(bitmapImageRep: bitmap) else {
