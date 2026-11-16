@@ -6,6 +6,14 @@ RIFT connects iPhone and Mac with a glowing right-edge Portal. Send photos, vide
 
 **Created by Ksyusha ([life999](https://guns.lol/life999))** · [Source code](https://github.com/y2kbeatzz-dot/FlickTunes)
 
+## RIFT 0.9.2 — Custom Mac installer
+
+The Mac DMG has a bespoke **purple-pink dimensional Portal** Finder window that matches RIFT's launch design. It displays the actual **RIFT.app** and **Applications** shortcut on either side of a luminous portal with a clear drag-to-install instruction. Drag RIFT into Applications, eject the DMG, then launch RIFT from Applications.
+
+The installer is built by `scripts/generate_installer_background.swift` (retina artwork) and `scripts/dmg_settings.py` (native Finder window styling and icon placement), using `dmgbuild` in headless CI. The build mounts and verifies the resulting DMG's application, `Applications` link, Finder background and app signature before release. The IPA is unchanged apart from the 0.9.2 version bump.
+
+**Security:** The Mac app remains ad-hoc signed and is not Apple-notarized. A branded installer does not eliminate Gatekeeper warnings or install a privileged helper. The iPhone IPA still requires signing separately.
+
 ## 🌐 RIFT website
 
 The new [RIFT launch website](website/index.html) includes downloads, features, eight animation effects, a privacy page, and support. To publish it with GitHub Pages and rename the repository to `RIFT`, follow **[LAUNCH.md](LAUNCH.md)**. GitHub Pages must be enabled in Settings → Pages → Source: GitHub Actions before the website is publicly live.
