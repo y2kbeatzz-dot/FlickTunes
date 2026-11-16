@@ -29,4 +29,5 @@ icon_size = 100
 text_size = 13
 label_pos = "bottom"
 icon_locations = {"RIFT.app": (155, 200), "Applications": (558, 200)}
-hide_extensions = ["RIFT.app"]
+# Avoid FinderInfo metadata on signed .app (macOS code-signature detritus).
+hide_extensions = []
