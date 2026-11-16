@@ -39,9 +39,8 @@ test "$(readlink "$MOUNT_DIR/Applications")" = "/Applications" || { echo "ERROR:
 echo "Verifying Finder layout…"
 test -s "$MOUNT_DIR/.DS_Store" || { echo "ERROR: Finder .DS_Store missing"; exit 1; }
 echo "Verifying branded background…"
-find "$MOUNT_DIR" -maxdepth 3 -type f | grep -i background || true
-test -d "$MOUNT_DIR/.background" || { echo "ERROR: Installer background folder missing"; exit 1; }
-find "$MOUNT_DIR/.background" -maxdepth 1 -type f | grep -q . || { echo "ERROR: Background artwork file missing"; exit 1; }
+# dmgbuild stores PNG artwork at the volume root as .background.png.
+test -s "$MOUNT_DIR/.background.png" || { echo "ERROR: Installer background artwork missing"; exit 1; }
 /usr/bin/codesign --verify --deep --strict "$MOUNT_DIR/RIFT.app"
 hdiutil detach "$MOUNT_DIR"
 rmdir "$MOUNT_DIR"
